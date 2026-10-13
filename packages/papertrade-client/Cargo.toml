@@ -1,0 +1,24 @@
+[package]
+name = "hl-papertrade-client"
+description = "Papertrade for an app: its reads, the session key's life (made, registered by the wallet, renewed), every write signed and posted once, and deposits from Hyperliquid, over hl-papertrade and hl-transfer on the caller's wire, store and wallet."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+# The session key signs in memory, and every wallet signature is recovered before it is posted.
+hl-core = { workspace = true, features = ["sign"] }
+hl-evm.workspace = true
+hl-papertrade = { workspace = true, features = ["sign"] }
+# The Hyperliquid sends a deposit is: spotSend, sendAsset, usdClassTransfer.
+hl-transfer.workspace = true
+thiserror.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
