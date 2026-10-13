@@ -1,0 +1,65 @@
+[workspace]
+resolver = "3"
+members = [
+  # Papertrade, a venue on HyperEVM built from hl-core and hl-evm.
+  "packages/papertrade",
+  # Papertrade for an app: the session key's life, the writes and deposits, on the protocol above
+  # and hl-transfer.
+  "packages/papertrade-client",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+publish = false
+license = "BUSL-1.1"
+
+# hl-rust, the Hyperliquid family this is built on, from its private repository at one tag. An app
+# that also depends on hl-rust names the same tag, so cargo builds one hl-core for both.
+[workspace.dependencies]
+# Without `sign`: a crate that signs, or a test that does, asks for it.
+hl-core = { git = "ssh://git@github.com/dennisfurrer/hl-rust.git", tag = "v0.1.0", default-features = false }
+hl-evm = { git = "ssh://git@github.com/dennisfurrer/hl-rust.git", tag = "v0.1.0" }
+hl-transfer = { git = "ssh://git@github.com/dennisfurrer/hl-rust.git", tag = "v0.1.0" }
+# The example's wire alone.
+hl-native = { git = "ssh://git@github.com/dennisfurrer/hl-rust.git", tag = "v0.1.0" }
+hl-papertrade = { path = "packages/papertrade" }
+hl-papertrade-client = { path = "packages/papertrade-client" }
+
+# Pins follow hl-rust.
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.21"
+zeroize = "1.9.0"
+tokio = { version = "1.53.1", default-features = false }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+# Prices and sizes are exact decimals on this venue; a float anywhere is a bug.
+float_arithmetic = "deny"
+# A panic in a Worker kills the isolate; in the browser it kills the app.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+float_cmp = "warn"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+# Browser and Worker wasm: size first. `cargo build --profile wasm`.
+[profile.wasm]
+inherits = "release"
+opt-level = "s"
+lto = "fat"
+panic = "abort"
+strip = "debuginfo"

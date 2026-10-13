@@ -24,6 +24,12 @@ sign = ["hl-core/sign", "hl-evm/sign"]
 hl-core = { workspace = true, features = ["sign"] }
 # Itself with `sign`, so the tests cover recovery and the session key; a normal build is unaffected.
 hl-papertrade = { path = ".", features = ["sign"] }
+# The example reads mainnet through the native wire.
+hl-native.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
 workspace = true
+
+[[example]]
+name = "papertrade_page"

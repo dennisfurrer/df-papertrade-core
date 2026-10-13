@@ -1,0 +1,3 @@
+# hl-rust is a private git dependency: fetch it with git itself, so its SSH keys and agent apply.
+[net]
+git-fetch-with-cli = true

@@ -1,0 +1,37 @@
+name: check
+
+# `just check`, the gate before every commit, on every push to main and every pull request:
+# fmt, clippy native and wasm, every test, and the feature check.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # rust-toolchain.toml pins 1.94.1 with clippy, rustfmt and wasm32; this action honours it.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      # hl-rust is private: a read-only deploy key on it, for cargo's git fetch
+      # (.cargo/config.toml fetches with git itself).
+      - uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.HL_RUST_DEPLOY_KEY }}
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - run: just check
