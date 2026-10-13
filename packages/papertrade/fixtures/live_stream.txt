@@ -1,0 +1,80 @@
+: connected
+
+event: liveness
+data: {"heartbeatIntervalMs":10000}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","indexedThroughBlock":48399590,"indexedThroughTimestamp":1791862827,"sessionKeys":[["0x3f531f402502754977d21725fa31bfaacbed3562","1794285240"],["0x598cd07f34602a0f6e33d468ca9d59840252a528","1794400003"]],"walletRevision":48399562,"queueRevision":"881","balance":"234249163328500998503","queued":"0","locked":"20000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"234249163328500998503","availableQueued":"0"},"queueNodeCount":0,"consumableDebt":"0","paper":{"balance":"307408189127066828","staked":"2148971300842266809833","pendingBase":"539307779344086270","rewardDebt":"22582801164825882659"},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44809098328500998503","feesPaidRaw":"2496246575165132132","tradedNotionalRaw":"275000000000000000000000","paperRewardsClaimedRaw":"0"},"openPositions":[["411276",0,true,false,"832245","10000000000000000000",100,"824315",1791862800000,"0xa2e19a7fd16ba48958d0663302f2cf9071c8ba4b75a7686931f905f04f51b2d5"],["411085",1,false,false,"250225","10000000000000000000",100,"252606",1791862682000,"0xf2a3b2a4a6c2c81017be21a30171ec4217cfcb82424bccb0ee91f5c71d66238e"]],"operations":[],"accountRevision":1}
+
+event: heartbeat
+data: null
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":2,"baseAccountRevision":1,"state":{"indexedThroughBlock":48399614,"indexedThroughTimestamp":1791862851,"queueRevision":"882"},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0x71a9f6c0143e531d619cb9145175c02f37e030bf2d00695e32a635fa552f14d2","closePositions",null,null,null,null,null,1791862851323,"1791862941",["411276"]]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":3,"baseAccountRevision":2,"state":{"indexedThroughBlock":48399623,"indexedThroughTimestamp":1791862860,"walletRevision":48399623,"queueRevision":"883","balance":"244141022096051419353","locked":"10000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"244141022096051419353","availableQueued":"0"},"paper":{"balance":"3073772114461888177","staked":"2148971300842266809833","pendingBase":"539307779344086270","rewardDebt":"22582801164825882659"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44700957096051419353","feesPaidRaw":"2496246575165132132","tradedNotionalRaw":"275000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[],"removedPositionIds":["411276"],"closedPositions":[["411276",0,true,"10000000000000000000",100,false,"-108141232449579150","2766363925334821349"]],"addedOperations":[],"removedOperationIds":["0x71a9f6c0143e531d619cb9145175c02f37e030bf2d00695e32a635fa552f14d2"],"intentOutcomes":[["0x71a9f6c0143e531d619cb9145175c02f37e030bf2d00695e32a635fa552f14d2","succeeded"]]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":4,"baseAccountRevision":3,"state":{"indexedThroughBlock":48399626,"indexedThroughTimestamp":1791862862,"queueRevision":"884","funds":{"reservedBalance":"10000000000000000000","reservedQueued":"0","availableBalance":"234141022096051419353","availableQueued":"0"}},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0xbacd5844863a2af1f983e864300642a0f03949de025cf3208372d670f6f44937","openPosition",0,false,false,"10000000000000000000",100,1791862862888,"1791862952",null]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":5,"baseAccountRevision":4,"state":{"indexedThroughBlock":48399631,"indexedThroughTimestamp":1791862867,"walletRevision":48399631,"queueRevision":"885","balance":"234141022096051419353","locked":"20000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"234141022096051419353","availableQueued":"0"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44700957096051419353","feesPaidRaw":"2496246575165132132","tradedNotionalRaw":"276000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[["411379",0,false,false,"832045","10000000000000000000",100,"839965",1791862867000,"0xbacd5844863a2af1f983e864300642a0f03949de025cf3208372d670f6f44937"]],"removedPositionIds":[],"addedOperations":[],"removedOperationIds":["0xbacd5844863a2af1f983e864300642a0f03949de025cf3208372d670f6f44937"],"intentOutcomes":[["0xbacd5844863a2af1f983e864300642a0f03949de025cf3208372d670f6f44937","succeeded"]]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":6,"baseAccountRevision":5,"state":{"indexedThroughBlock":48399643,"indexedThroughTimestamp":1791862879,"queueRevision":"886"},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0x033ab11b8f8ee7ed8299d1ec52d5dff5953c38a5d139f55cf81b0116ec71012d","closePositions",null,null,null,null,null,1791862879629,"1791862969",["411379"]]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":7,"baseAccountRevision":6,"state":{"indexedThroughBlock":48399656,"indexedThroughTimestamp":1791862892,"walletRevision":48399656,"queueRevision":"887","balance":"244254487172271958841","locked":"10000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"244254487172271958841","availableQueued":"0"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44814422172271958841","feesPaidRaw":"2498562188965551305","tradedNotionalRaw":"276000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[],"removedPositionIds":["411379"],"closedPositions":[["411379",0,false,"10000000000000000000",100,false,"113465076220539488","0"]],"addedOperations":[],"removedOperationIds":["0x033ab11b8f8ee7ed8299d1ec52d5dff5953c38a5d139f55cf81b0116ec71012d"],"intentOutcomes":[["0x033ab11b8f8ee7ed8299d1ec52d5dff5953c38a5d139f55cf81b0116ec71012d","succeeded"]]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":8,"baseAccountRevision":7,"state":{"indexedThroughBlock":48399659,"indexedThroughTimestamp":1791862895,"queueRevision":"888","funds":{"reservedBalance":"10000000000000000000","reservedQueued":"0","availableBalance":"234254487172271958841","availableQueued":"0"}},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0xec53f50987071c2c6021490a9efd2d242f0b49871808a23e78c079745158163e","openPosition",0,true,false,"10000000000000000000",100,1791862896234,"1791862986",null]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":9,"baseAccountRevision":8,"state":{"indexedThroughBlock":48399664,"indexedThroughTimestamp":1791862900,"walletRevision":48399664,"queueRevision":"889","balance":"234254487172271958841","locked":"20000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"234254487172271958841","availableQueued":"0"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44814422172271958841","feesPaidRaw":"2498562188965551305","tradedNotionalRaw":"277000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[["411413",0,true,false,"831975","10000000000000000000",100,"824048",1791862900000,"0xec53f50987071c2c6021490a9efd2d242f0b49871808a23e78c079745158163e"]],"removedPositionIds":[],"addedOperations":[],"removedOperationIds":["0xec53f50987071c2c6021490a9efd2d242f0b49871808a23e78c079745158163e"],"intentOutcomes":[["0xec53f50987071c2c6021490a9efd2d242f0b49871808a23e78c079745158163e","succeeded"]]}
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":10,"baseAccountRevision":9,"state":{"indexedThroughBlock":48399814,"indexedThroughTimestamp":1791863047,"queueRevision":"890"},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0x7155bd1e60ff704b632b31305eed2c66b7a02f04250a03e131ef416daf25fff3","closePositions",null,null,null,null,null,1791863047285,"1791863137",["411413"]]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":11,"baseAccountRevision":10,"state":{"indexedThroughBlock":48399817,"indexedThroughTimestamp":1791863050,"walletRevision":48399817,"queueRevision":"891","balance":"243881879822291490678","locked":"10000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"243881879822291490678","availableQueued":"0"},"paper":{"balance":"12604439410742301116","staked":"2148971300842266809833","pendingBase":"539307779344086270","rewardDebt":"22582801164825882659"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44441814822291490678","feesPaidRaw":"2498562188965551305","tradedNotionalRaw":"277000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[],"removedPositionIds":["411413"],"closedPositions":[["411413",0,true,"10000000000000000000",100,false,"-372607349980468163","9530667296280412939"]],"addedOperations":[],"removedOperationIds":["0x7155bd1e60ff704b632b31305eed2c66b7a02f04250a03e131ef416daf25fff3"],"intentOutcomes":[["0x7155bd1e60ff704b632b31305eed2c66b7a02f04250a03e131ef416daf25fff3","succeeded"]]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":12,"baseAccountRevision":11,"state":{"indexedThroughBlock":48399819,"indexedThroughTimestamp":1791863052,"queueRevision":"892","funds":{"reservedBalance":"10000000000000000000","reservedQueued":"0","availableBalance":"233881879822291490678","availableQueued":"0"}},"addedPositions":[],"removedPositionIds":[],"addedOperations":[["0xd0dc23eee093efe683da3983ee71bb89cc4fbdd92c7cf224a2e172c23b1eff5d","openPosition",0,false,false,"10000000000000000000",100,1791863053081,"1791863142",null]],"removedOperationIds":[]}
+
+event: wallet
+data: {"address":"0xa9f28db0543b215eb2705740f10258c3d000cefd","accountRevision":13,"baseAccountRevision":12,"state":{"indexedThroughBlock":48399821,"indexedThroughTimestamp":1791863054,"walletRevision":48399821,"queueRevision":"893","balance":"233881879822291490678","locked":"20000000000000000000","funds":{"reservedBalance":"0","reservedQueued":"0","availableBalance":"233881879822291490678","availableQueued":"0"}},"lifetime":{"depositedRaw":"209440065000000000000","withdrawnRaw":"0","realizedPnlRaw":"44441814822291490678","feesPaidRaw":"2498562188965551305","tradedNotionalRaw":"278000000000000000000000","paperRewardsClaimedRaw":"0"},"addedPositions":[["411641",0,false,false,"831665","10000000000000000000",100,"839582",1791863054000,"0xd0dc23eee093efe683da3983ee71bb89cc4fbdd92c7cf224a2e172c23b1eff5d"]],"removedPositionIds":[],"addedOperations":[],"removedOperationIds":["0xd0dc23eee093efe683da3983ee71bb89cc4fbdd92c7cf224a2e172c23b1eff5d"],"intentOutcomes":[["0xd0dc23eee093efe683da3983ee71bb89cc4fbdd92c7cf224a2e172c23b1eff5d","succeeded"]]}
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+
+event: heartbeat
+data: null
+

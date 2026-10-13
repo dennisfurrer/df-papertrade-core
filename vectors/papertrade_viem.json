@@ -1,0 +1,826 @@
+{
+ "source": "viem 2.55.4 alone, run under node 22.14.0: hashDomain (with getTypesForEIP712Domain), encodeType and hashStruct, hashTypedData, privateKeyToAccount(key).signTypedData, recoverTypedDataAddress (every signature recovers to its signer), parseSignature, keccak256, concat, toBytes, toHex, validateTypedData; walletJson is viem's own serializeTypedData({domain, message, primaryType, types: {EIP712Domain: getTypesForEIP712Domain({domain}), [primaryType]: fields}}), exactly what signTypedData hands a JSON-RPC account's eth_signTypedData_v4, with uint32 and uint64 fields given to viem as numbers (JSON numbers) and uint128, uint256 and uint256[] as bigints (decimal strings); intentId is keccak256(concat([intentIdTag, digest, signer address lowercase])) and signed is the relayer's payload, both mirroring exchange.papertrade.xyz's zy and Fy/Py/Ly functions (uint* and uint256[] as decimal strings, address and bytes* lowercase, bools as bools, v as \"27\"/\"28\", r and s lowercase 32-byte hex); the exchange and paperStaking separators were asserted against the contracts' on-chain DOMAIN_SEPARATOR() answers on 2026-10-13.",
+ "wallet": {
+  "key": "0x0123456789012345678901234567890123456789012345678901234567890123",
+  "address": "0x14791697260e4c9a71f18484c9f997b308e59325"
+ },
+ "session": {
+  "key": "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
+  "address": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23"
+ },
+ "domains": {
+  "exchange": {
+   "name": "String",
+   "version": "1",
+   "chainId": 999,
+   "verifyingContract": "0x6cd5661646289fb6e65ea5c032310fded797d0a2",
+   "separator": "0x53a2ab5a64b3239d36b108fb4cd035ebb40ed3f71dec28e37966622670147e77"
+  },
+  "paperStaking": {
+   "name": "PaperStaking",
+   "version": "1",
+   "chainId": 999,
+   "verifyingContract": "0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016",
+   "separator": "0x71706d56c8b436981e93987cd97df512528491b243c6d8d1614cad52659e7eb0"
+  },
+  "cancellation": {
+   "name": "PaperTrade Intent Cancel",
+   "version": "2",
+   "chainId": 999,
+   "verifyingContract": "0x6cd5661646289fb6e65ea5c032310fded797d0a2",
+   "separator": "0xc7761a13592e2349d67f18eeed227ad588b105e36151d5e3a14c3181b0ef95be"
+  }
+ },
+ "intentIdTag": "0xf42e60f8efa2a9e7f0871f979962930f4f0da165cafc8ebb9fd1ddaa48a8f1a0",
+ "cases": [
+  {
+   "name": "register session key",
+   "domain": "exchange",
+   "primaryType": "RegisterSessionKey",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "key",
+     "type": "address"
+    },
+    {
+     "name": "expiry",
+     "type": "uint64"
+    },
+    {
+     "name": "feeAddress",
+     "type": "address"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "key": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+    "expiry": "1794452400",
+    "feeAddress": "0x0000000000000000000000000000000000000000",
+    "nonce": "3170816",
+    "deadline": "1791864000"
+   },
+   "typeString": "RegisterSessionKey(address user,address key,uint64 expiry,address feeAddress,uint256 nonce,uint64 deadline)",
+   "typeHash": "0xd3d9a309f635415423ab81e7e3fb16d2117cc8e1edc90506adde9eaa3855edd2",
+   "structHash": "0x3c61092393305e5666c528e6f326b2f38904fa13935b3f293721eade81393d4a",
+   "digest": "0x0c57f7630226b1b1a7df2f2208e232f7a53f6b4ca04a3eae0f3ac7afee392165",
+   "signature": "0x5bd8739fdfd61a55ba54a3e5429c6eeb869c194be1c3bb405e4f22fbdae15a1a3086e3dcabbe21f5608d3c1594627251a68b9741db20478e19b16a76415a5cf01c",
+   "r": "0x5bd8739fdfd61a55ba54a3e5429c6eeb869c194be1c3bb405e4f22fbdae15a1a",
+   "s": "0x3086e3dcabbe21f5608d3c1594627251a68b9741db20478e19b16a76415a5cf0",
+   "v": 28,
+   "intentId": "0xe035aa9e287505d4be05fb50a424e0234858a710c97d8ab517f781b34e2371dd",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "key": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+    "expiry": "1794452400",
+    "feeAddress": "0x0000000000000000000000000000000000000000",
+    "nonce": "3170816",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x5bd8739fdfd61a55ba54a3e5429c6eeb869c194be1c3bb405e4f22fbdae15a1a",
+    "s": "0x3086e3dcabbe21f5608d3c1594627251a68b9741db20478e19b16a76415a5cf0"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"key\":\"0x2c7536e3605d9c16a7a3d7b1898e529396a65c23\",\"expiry\":1794452400,\"feeAddress\":\"0x0000000000000000000000000000000000000000\",\"nonce\":\"3170816\",\"deadline\":1791864000},\"primaryType\":\"RegisterSessionKey\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"RegisterSessionKey\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"key\",\"type\":\"address\"},{\"name\":\"expiry\",\"type\":\"uint64\"},{\"name\":\"feeAddress\",\"type\":\"address\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "open BTC long 1000x $10 from balance",
+   "domain": "exchange",
+   "primaryType": "OpenPosition",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "instrumentId",
+     "type": "uint32"
+    },
+    {
+     "name": "isLong",
+     "type": "bool"
+    },
+    {
+     "name": "size",
+     "type": "uint128"
+    },
+    {
+     "name": "leverage",
+     "type": "uint32"
+    },
+    {
+     "name": "useDebt",
+     "type": "bool"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "0",
+    "isLong": true,
+    "size": "10000000000000000000",
+    "leverage": "1000",
+    "useDebt": false,
+    "nonce": "3170817",
+    "deadline": "1791864000"
+   },
+   "typeString": "OpenPosition(address user,uint32 instrumentId,bool isLong,uint128 size,uint32 leverage,bool useDebt,uint256 nonce,uint64 deadline)",
+   "typeHash": "0xfce2fb41f9ff0457a0f012e62cfd6a7cff4e8439ae20008ab6979c740ba5a983",
+   "structHash": "0xecec6bbf365bca9950214e2cbf25cdb55e886f64da93e5da9b9309ed63a20c25",
+   "digest": "0x1151ddb60207e6f09186725b144ba4660e20109adc197cb5b837bf4c08818879",
+   "signature": "0x210ca4a1df62e9e0511ae6aa2e1341de9401e7b7dd13449bac168a2c3856cd820045a538cc3cf45e31f14f4589d5e1845f0c83cc9c4540c0fc292d62ac72a4f91b",
+   "r": "0x210ca4a1df62e9e0511ae6aa2e1341de9401e7b7dd13449bac168a2c3856cd82",
+   "s": "0x0045a538cc3cf45e31f14f4589d5e1845f0c83cc9c4540c0fc292d62ac72a4f9",
+   "v": 27,
+   "intentId": "0xc2bc1984b6b08b26186b7579d4a279f24937865b82683d9ed4199f40012cb959",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "0",
+    "isLong": true,
+    "size": "10000000000000000000",
+    "leverage": "1000",
+    "useDebt": false,
+    "nonce": "3170817",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0x210ca4a1df62e9e0511ae6aa2e1341de9401e7b7dd13449bac168a2c3856cd82",
+    "s": "0x0045a538cc3cf45e31f14f4589d5e1845f0c83cc9c4540c0fc292d62ac72a4f9"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"instrumentId\":0,\"isLong\":true,\"size\":\"10000000000000000000\",\"leverage\":1000,\"useDebt\":false,\"nonce\":\"3170817\",\"deadline\":1791864000},\"primaryType\":\"OpenPosition\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"OpenPosition\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"instrumentId\",\"type\":\"uint32\"},{\"name\":\"isLong\",\"type\":\"bool\"},{\"name\":\"size\",\"type\":\"uint128\"},{\"name\":\"leverage\",\"type\":\"uint32\"},{\"name\":\"useDebt\",\"type\":\"bool\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "open ETH short 2x from queued balance",
+   "domain": "exchange",
+   "primaryType": "OpenPosition",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "instrumentId",
+     "type": "uint32"
+    },
+    {
+     "name": "isLong",
+     "type": "bool"
+    },
+    {
+     "name": "size",
+     "type": "uint128"
+    },
+    {
+     "name": "leverage",
+     "type": "uint32"
+    },
+    {
+     "name": "useDebt",
+     "type": "bool"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "1",
+    "isLong": false,
+    "size": "4007498314184331773452",
+    "leverage": "2",
+    "useDebt": true,
+    "nonce": "3170818",
+    "deadline": "1791864000"
+   },
+   "typeString": "OpenPosition(address user,uint32 instrumentId,bool isLong,uint128 size,uint32 leverage,bool useDebt,uint256 nonce,uint64 deadline)",
+   "typeHash": "0xfce2fb41f9ff0457a0f012e62cfd6a7cff4e8439ae20008ab6979c740ba5a983",
+   "structHash": "0x5cb2b083efb2a93328719db102e59919f97550f506a372187a8a11bae66475bc",
+   "digest": "0x6fb9d77ae3ae1db6bbc9f77f78d9dbd27a7ebf80df522d50aa70660af06ecd80",
+   "signature": "0x90d1f6e61670ab59e653dd95873c745c83b6886aa13d8cad7278ad7989a30015417018c5ad18aa02182c7647b61fd1d0e896ec93a19f585eccde0e38c716f2041c",
+   "r": "0x90d1f6e61670ab59e653dd95873c745c83b6886aa13d8cad7278ad7989a30015",
+   "s": "0x417018c5ad18aa02182c7647b61fd1d0e896ec93a19f585eccde0e38c716f204",
+   "v": 28,
+   "intentId": "0x026c9343963d7763147bc3e1da18b3e802639b4d1e8c02facaa7e8e48c6d257c",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "1",
+    "isLong": false,
+    "size": "4007498314184331773452",
+    "leverage": "2",
+    "useDebt": true,
+    "nonce": "3170818",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x90d1f6e61670ab59e653dd95873c745c83b6886aa13d8cad7278ad7989a30015",
+    "s": "0x417018c5ad18aa02182c7647b61fd1d0e896ec93a19f585eccde0e38c716f204"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"instrumentId\":1,\"isLong\":false,\"size\":\"4007498314184331773452\",\"leverage\":2,\"useDebt\":true,\"nonce\":\"3170818\",\"deadline\":1791864000},\"primaryType\":\"OpenPosition\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"OpenPosition\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"instrumentId\",\"type\":\"uint32\"},{\"name\":\"isLong\",\"type\":\"bool\"},{\"name\":\"size\",\"type\":\"uint128\"},{\"name\":\"leverage\",\"type\":\"uint32\"},{\"name\":\"useDebt\",\"type\":\"bool\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "open with the largest uint128 size",
+   "domain": "exchange",
+   "primaryType": "OpenPosition",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "instrumentId",
+     "type": "uint32"
+    },
+    {
+     "name": "isLong",
+     "type": "bool"
+    },
+    {
+     "name": "size",
+     "type": "uint128"
+    },
+    {
+     "name": "leverage",
+     "type": "uint32"
+    },
+    {
+     "name": "useDebt",
+     "type": "bool"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "0",
+    "isLong": true,
+    "size": "340282366920938463463374607431768211455",
+    "leverage": "1",
+    "useDebt": false,
+    "nonce": "3170819",
+    "deadline": "1791864000"
+   },
+   "typeString": "OpenPosition(address user,uint32 instrumentId,bool isLong,uint128 size,uint32 leverage,bool useDebt,uint256 nonce,uint64 deadline)",
+   "typeHash": "0xfce2fb41f9ff0457a0f012e62cfd6a7cff4e8439ae20008ab6979c740ba5a983",
+   "structHash": "0x4795e8da408f9d03f611d12b02f412db676bcb86b88df5b5dbc1b3e1ec96f431",
+   "digest": "0x415c6ce59c72726d150ef068dececa313d206efa8f6671467517ade31d68e1fc",
+   "signature": "0x5cf6e474bf04a3e6c9ff245c8167017f9127c93070ac97fca58a6363cd4b644a0279f106f27a64722185f0ddc72b0eac158192db12716899610ad346170948a91c",
+   "r": "0x5cf6e474bf04a3e6c9ff245c8167017f9127c93070ac97fca58a6363cd4b644a",
+   "s": "0x0279f106f27a64722185f0ddc72b0eac158192db12716899610ad346170948a9",
+   "v": 28,
+   "intentId": "0x8b73f81974331a078e02fe215d04eba173725e3c1a202b96cf7750b5780b4d67",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "instrumentId": "0",
+    "isLong": true,
+    "size": "340282366920938463463374607431768211455",
+    "leverage": "1",
+    "useDebt": false,
+    "nonce": "3170819",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x5cf6e474bf04a3e6c9ff245c8167017f9127c93070ac97fca58a6363cd4b644a",
+    "s": "0x0279f106f27a64722185f0ddc72b0eac158192db12716899610ad346170948a9"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"instrumentId\":0,\"isLong\":true,\"size\":\"340282366920938463463374607431768211455\",\"leverage\":1,\"useDebt\":false,\"nonce\":\"3170819\",\"deadline\":1791864000},\"primaryType\":\"OpenPosition\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"OpenPosition\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"instrumentId\",\"type\":\"uint32\"},{\"name\":\"isLong\",\"type\":\"bool\"},{\"name\":\"size\",\"type\":\"uint128\"},{\"name\":\"leverage\",\"type\":\"uint32\"},{\"name\":\"useDebt\",\"type\":\"bool\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "close one position",
+   "domain": "exchange",
+   "primaryType": "Close",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "positionIds",
+     "type": "uint256[]"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "408665"
+    ],
+    "nonce": "3170820",
+    "deadline": "1791864000"
+   },
+   "typeString": "Close(address user,uint256[] positionIds,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x9cc23a52214afa42e1ae53cdb2e79dc2d0cd33c33faca383ed3b149300adcb13",
+   "structHash": "0x2def6bc8e42bcd618e1c1734b4f9f7528a6232a321a5d0440ca8842851dd3964",
+   "digest": "0xf62e5c0ffaf5d5adacf268c6bbe251a38628f2d7a973cdafd09af7df5d74ba84",
+   "signature": "0xf334f23dc5d7d36755dda40aeb1a46bf88a013e8335ff254ea29d07342877022265dc8b66d9264fc3d0ae16b75ae482f61fff65a88e632b1b6e88e93481aaf9d1b",
+   "r": "0xf334f23dc5d7d36755dda40aeb1a46bf88a013e8335ff254ea29d07342877022",
+   "s": "0x265dc8b66d9264fc3d0ae16b75ae482f61fff65a88e632b1b6e88e93481aaf9d",
+   "v": 27,
+   "intentId": "0x38ba6aa5e09d294feb9c1a114c3fa041ee7061c14b7d43642ef70d154ce27fe8",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "408665"
+    ],
+    "nonce": "3170820",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0xf334f23dc5d7d36755dda40aeb1a46bf88a013e8335ff254ea29d07342877022",
+    "s": "0x265dc8b66d9264fc3d0ae16b75ae482f61fff65a88e632b1b6e88e93481aaf9d"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"positionIds\":[\"408665\"],\"nonce\":\"3170820\",\"deadline\":1791864000},\"primaryType\":\"Close\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Close\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"positionIds\",\"type\":\"uint256[]\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "close twelve positions",
+   "domain": "exchange",
+   "primaryType": "Close",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "positionIds",
+     "type": "uint256[]"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "408600",
+     "408607",
+     "408614",
+     "408621",
+     "408628",
+     "408635",
+     "408642",
+     "408649",
+     "408656",
+     "408663",
+     "408670",
+     "408677"
+    ],
+    "nonce": "3170821",
+    "deadline": "1791864000"
+   },
+   "typeString": "Close(address user,uint256[] positionIds,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x9cc23a52214afa42e1ae53cdb2e79dc2d0cd33c33faca383ed3b149300adcb13",
+   "structHash": "0x0adbc38251614bed6678604cc7f04f98e5e8ca67a9ac5becd30b4cbea2859bac",
+   "digest": "0x2fb93f0e3436a1e3c20a7951f4ebdb4482fc7aa44b536e1d582b84bce299e84b",
+   "signature": "0x7adf2209d426dc6b77aeeaaa1d333bfbcb0147f32f95139ffc486f283b95f30c7eee9a09596cf4f97989530ce58e78acb62924ddceede1d757e1ff9736276e111c",
+   "r": "0x7adf2209d426dc6b77aeeaaa1d333bfbcb0147f32f95139ffc486f283b95f30c",
+   "s": "0x7eee9a09596cf4f97989530ce58e78acb62924ddceede1d757e1ff9736276e11",
+   "v": 28,
+   "intentId": "0x67ed4e2925dabe4e2f418dafc5490b7da0cb39932dbbed71976014a3036f6be2",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "408600",
+     "408607",
+     "408614",
+     "408621",
+     "408628",
+     "408635",
+     "408642",
+     "408649",
+     "408656",
+     "408663",
+     "408670",
+     "408677"
+    ],
+    "nonce": "3170821",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x7adf2209d426dc6b77aeeaaa1d333bfbcb0147f32f95139ffc486f283b95f30c",
+    "s": "0x7eee9a09596cf4f97989530ce58e78acb62924ddceede1d757e1ff9736276e11"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"positionIds\":[\"408600\",\"408607\",\"408614\",\"408621\",\"408628\",\"408635\",\"408642\",\"408649\",\"408656\",\"408663\",\"408670\",\"408677\"],\"nonce\":\"3170821\",\"deadline\":1791864000},\"primaryType\":\"Close\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Close\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"positionIds\",\"type\":\"uint256[]\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "close a position id past u128",
+   "domain": "exchange",
+   "primaryType": "Close",
+   "signer": "session",
+   "beyondU128": true,
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "positionIds",
+     "type": "uint256[]"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "1606938044258990275541962092341162602522202993782792835313721",
+     "1"
+    ],
+    "nonce": "3170822",
+    "deadline": "1791864000"
+   },
+   "typeString": "Close(address user,uint256[] positionIds,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x9cc23a52214afa42e1ae53cdb2e79dc2d0cd33c33faca383ed3b149300adcb13",
+   "structHash": "0xff3b62f5f0bd5ab3b23b8dbe1de593b282b24a00f516ef5917a9cda5879f2a8f",
+   "digest": "0xc640ef362612710beae2464b4fe05a9eda286475df09dc88c88f6edfa93f777e",
+   "signature": "0xaadc48bb388fa54adcbc47b6bacb9d2ea22e8eb0bb0cc6cb97b4a4585942d89c179da65ce0c75982f68d9b625299358777bf543ff9ef18b986eddce5fa6eb07e1b",
+   "r": "0xaadc48bb388fa54adcbc47b6bacb9d2ea22e8eb0bb0cc6cb97b4a4585942d89c",
+   "s": "0x179da65ce0c75982f68d9b625299358777bf543ff9ef18b986eddce5fa6eb07e",
+   "v": 27,
+   "intentId": "0x9b443b8b6b6847fbb7bf629bfacbc9db21c9411eaedf1f82f9dca7b5b524ca64",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "positionIds": [
+     "1606938044258990275541962092341162602522202993782792835313721",
+     "1"
+    ],
+    "nonce": "3170822",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0xaadc48bb388fa54adcbc47b6bacb9d2ea22e8eb0bb0cc6cb97b4a4585942d89c",
+    "s": "0x179da65ce0c75982f68d9b625299358777bf543ff9ef18b986eddce5fa6eb07e"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"positionIds\":[\"1606938044258990275541962092341162602522202993782792835313721\",\"1\"],\"nonce\":\"3170822\",\"deadline\":1791864000},\"primaryType\":\"Close\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Close\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"positionIds\",\"type\":\"uint256[]\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "withdraw 10 USDC to core",
+   "domain": "exchange",
+   "primaryType": "WithdrawToCore",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "10000000",
+    "nonce": "3170823",
+    "deadline": "1791864000"
+   },
+   "typeString": "WithdrawToCore(address user,uint256 amount,uint256 nonce,uint64 deadline)",
+   "typeHash": "0xac4ddb8d63e9d7a862c5d61ce47517623a448262414a7eef6797102104b31214",
+   "structHash": "0x14a7d0648549802063e1f4b6b298e8053f100935beac874a97756d907452ed56",
+   "digest": "0x7c2f4419d56a5eee9e9a7b4e5605f74db04ecdc31f54ae2f954ff3903e3629a6",
+   "signature": "0xa96a61e11b07a398604cbdd83b43e1f9c487f3c290f76e4ebad978e3f0c0cda40105d27ec593b5de1b0f1c700cf394ad0e8d772f54f1967ee3fdfcf425b310561b",
+   "r": "0xa96a61e11b07a398604cbdd83b43e1f9c487f3c290f76e4ebad978e3f0c0cda4",
+   "s": "0x0105d27ec593b5de1b0f1c700cf394ad0e8d772f54f1967ee3fdfcf425b31056",
+   "v": 27,
+   "intentId": "0x380111052217dd192d9f5f5aaa3f8b7b64fc9aa298c4b42192d9a20e8a32527c",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "10000000",
+    "nonce": "3170823",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0xa96a61e11b07a398604cbdd83b43e1f9c487f3c290f76e4ebad978e3f0c0cda4",
+    "s": "0x0105d27ec593b5de1b0f1c700cf394ad0e8d772f54f1967ee3fdfcf425b31056"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"String\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"amount\":\"10000000\",\"nonce\":\"3170823\",\"deadline\":1791864000},\"primaryType\":\"WithdrawToCore\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"WithdrawToCore\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "stake 1000 PAPER",
+   "domain": "paperStaking",
+   "primaryType": "Stake",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "1000000000000000000000",
+    "nonce": "3170824",
+    "deadline": "1791864000"
+   },
+   "typeString": "Stake(address user,uint256 amount,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x0e9469f2731f138fe05733a3ab1961961d9def010d73419c3f5b55ae6d64e8b0",
+   "structHash": "0xb52f6868f96d1025b7073f796c1e4203698addc95d3db4f93c2f66ea5162621f",
+   "digest": "0x8c8b81ac46344ed107b5109a1fd8049795128d49c100751e3ebe95de9cf6e21a",
+   "signature": "0xb47a566cb8c0d298150c9b115c391b1c614c79621403e5d44e29cc5fbb4f26ec529265faba1546ce78cc7ed6730501e6aafea9cefb64c1ebb3b5a4b2a83048fb1b",
+   "r": "0xb47a566cb8c0d298150c9b115c391b1c614c79621403e5d44e29cc5fbb4f26ec",
+   "s": "0x529265faba1546ce78cc7ed6730501e6aafea9cefb64c1ebb3b5a4b2a83048fb",
+   "v": 27,
+   "intentId": "0x40c58b214f0631dbebd6bbe72923ec2eb42d4e92bf21dd35c41c264f95ee15c9",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "1000000000000000000000",
+    "nonce": "3170824",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0xb47a566cb8c0d298150c9b115c391b1c614c79621403e5d44e29cc5fbb4f26ec",
+    "s": "0x529265faba1546ce78cc7ed6730501e6aafea9cefb64c1ebb3b5a4b2a83048fb"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"PaperStaking\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"amount\":\"1000000000000000000000\",\"nonce\":\"3170824\",\"deadline\":1791864000},\"primaryType\":\"Stake\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Stake\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "unstake 250.5 PAPER",
+   "domain": "paperStaking",
+   "primaryType": "Unstake",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "250500000000000000000",
+    "nonce": "3170825",
+    "deadline": "1791864000"
+   },
+   "typeString": "Unstake(address user,uint256 amount,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x1ecc9b0f79f4bb74abad4adb49babe57570219b3bc83a569a9b25299f833a9ce",
+   "structHash": "0x979c611310bb69e6830e8fc74009d2272e438fd1493a4c63fa19c0fe6efca825",
+   "digest": "0xd8805a28e471f9b8e53263df4d1b14372703b5165921f145e8abbdca910ac60c",
+   "signature": "0x2cf95829da618317ce3ab2fa21698df24da8a40b20cf5d17c4364d67324d4d9d26460577433e9e4d3361422bb8537a4458ab7066eea2728ca280e84aeae32f8d1b",
+   "r": "0x2cf95829da618317ce3ab2fa21698df24da8a40b20cf5d17c4364d67324d4d9d",
+   "s": "0x26460577433e9e4d3361422bb8537a4458ab7066eea2728ca280e84aeae32f8d",
+   "v": 27,
+   "intentId": "0x3cecf8a64646075885603426d99f7d64298b536815247ebff36988f4c92c6cce",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "amount": "250500000000000000000",
+    "nonce": "3170825",
+    "deadline": "1791864000",
+    "v": "27",
+    "r": "0x2cf95829da618317ce3ab2fa21698df24da8a40b20cf5d17c4364d67324d4d9d",
+    "s": "0x26460577433e9e4d3361422bb8537a4458ab7066eea2728ca280e84aeae32f8d"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"PaperStaking\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"amount\":\"250500000000000000000\",\"nonce\":\"3170825\",\"deadline\":1791864000},\"primaryType\":\"Unstake\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Unstake\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "claim rewards",
+   "domain": "paperStaking",
+   "primaryType": "Claim",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "nonce": "3170826",
+    "deadline": "1791864000"
+   },
+   "typeString": "Claim(address user,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x98df9450683706f5e3c8e5a81515893081ae7460248fbba60c7781957adc9f8f",
+   "structHash": "0xc620bde2575a025a7b92f5f1c9773e455fb26fb2eaeebeb6cd07dc889f271e6e",
+   "digest": "0x444082e6d0b7ad32d8d1a824dbd5f3139e5e32e69073e8e9f9650b09031b7c09",
+   "signature": "0xaf3fafad369b8ecf932186ba691f7e8d8e9e7818234588446a4144fdcdb88d340a9c5acc90bf46d517fd0e1c8b66e204ed44220b41d173543fafb6fab19bab851c",
+   "r": "0xaf3fafad369b8ecf932186ba691f7e8d8e9e7818234588446a4144fdcdb88d34",
+   "s": "0x0a9c5acc90bf46d517fd0e1c8b66e204ed44220b41d173543fafb6fab19bab85",
+   "v": 28,
+   "intentId": "0x077d3583391fa5fb721a4ce66279401c494cc565c5203a50c790937e502d13a2",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "nonce": "3170826",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0xaf3fafad369b8ecf932186ba691f7e8d8e9e7818234588446a4144fdcdb88d34",
+    "s": "0x0a9c5acc90bf46d517fd0e1c8b66e204ed44220b41d173543fafb6fab19bab85"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"PaperStaking\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"nonce\":\"3170826\",\"deadline\":1791864000},\"primaryType\":\"Claim\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Claim\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "distribute rewards",
+   "domain": "paperStaking",
+   "primaryType": "Distribute",
+   "signer": "wallet",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256"
+    },
+    {
+     "name": "deadline",
+     "type": "uint64"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "nonce": "3170827",
+    "deadline": "1791864000"
+   },
+   "typeString": "Distribute(address user,uint256 nonce,uint64 deadline)",
+   "typeHash": "0x23f3bc470a64f8283203a55adc575bcd5f81b7c537b6831c6886e4a0e2101e5a",
+   "structHash": "0x9f88213127ffe4e96d40fd848515ef11705393b486b48b09106afae6293a5a06",
+   "digest": "0x1172e1fb7d5f5d1348a489dbc8c274dfcc7afe3004c388d06d4a6c70941bfe28",
+   "signature": "0x5c0f0ea3a4760a4ab64508f911a125165d196dba3036f36ba0850a8a7922add5744449b93df884f037a8c4d4a855a4fd8cc2eaf85bfd9aad8bd0e702a3dcca6f1c",
+   "r": "0x5c0f0ea3a4760a4ab64508f911a125165d196dba3036f36ba0850a8a7922add5",
+   "s": "0x744449b93df884f037a8c4d4a855a4fd8cc2eaf85bfd9aad8bd0e702a3dcca6f",
+   "v": 28,
+   "intentId": "0x25e3fb925181cd6869844108be4e0cbc393061eae1cf80c7677c0bb62639865d",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "nonce": "3170827",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x5c0f0ea3a4760a4ab64508f911a125165d196dba3036f36ba0850a8a7922add5",
+    "s": "0x744449b93df884f037a8c4d4a855a4fd8cc2eaf85bfd9aad8bd0e702a3dcca6f"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"PaperStaking\",\"version\":\"1\",\"chainId\":999,\"verifyingContract\":\"0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"nonce\":\"3170827\",\"deadline\":1791864000},\"primaryType\":\"Distribute\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Distribute\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"nonce\",\"type\":\"uint256\"},{\"name\":\"deadline\",\"type\":\"uint64\"}]}}"
+  },
+  {
+   "name": "cancel the BTC open",
+   "domain": "cancellation",
+   "primaryType": "CancelIntent",
+   "signer": "session",
+   "types": [
+    {
+     "name": "user",
+     "type": "address"
+    },
+    {
+     "name": "intentId",
+     "type": "bytes32"
+    },
+    {
+     "name": "deadline",
+     "type": "uint256"
+    }
+   ],
+   "message": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "intentId": "0xc2bc1984b6b08b26186b7579d4a279f24937865b82683d9ed4199f40012cb959",
+    "deadline": "1791864000"
+   },
+   "typeString": "CancelIntent(address user,bytes32 intentId,uint256 deadline)",
+   "typeHash": "0xa35cd971369839445ca1bec7da15d6528a097bd9c3d0ebaf7d5d4f368f537b71",
+   "structHash": "0x1604cb991ce92ee486432d1ee6b4883939b7e3d8590599398a21d9412f5ec2bb",
+   "digest": "0x8b2cfbd572367973698e0784f5a0226a2dea4609893be3e55b0e5fb9101d769a",
+   "signature": "0x46f1029d41246630c35956ccca9111823cf54a06d5ed6bde00a679736cd6fa8c62241e4a859c497a2429fc4b7f9f9a6cb1d9c5b6de9ae2c5c88bf7f111188b701c",
+   "r": "0x46f1029d41246630c35956ccca9111823cf54a06d5ed6bde00a679736cd6fa8c",
+   "s": "0x62241e4a859c497a2429fc4b7f9f9a6cb1d9c5b6de9ae2c5c88bf7f111188b70",
+   "v": 28,
+   "intentId": "0xd1a4b4af898ab0de405685c144cebb38e4503d4f5266b5dc7ca970dc9a2f83e2",
+   "signed": {
+    "user": "0x14791697260e4c9a71f18484c9f997b308e59325",
+    "intentId": "0xc2bc1984b6b08b26186b7579d4a279f24937865b82683d9ed4199f40012cb959",
+    "deadline": "1791864000",
+    "v": "28",
+    "r": "0x46f1029d41246630c35956ccca9111823cf54a06d5ed6bde00a679736cd6fa8c",
+    "s": "0x62241e4a859c497a2429fc4b7f9f9a6cb1d9c5b6de9ae2c5c88bf7f111188b70"
+   },
+   "walletJson": "{\"domain\":{\"name\":\"PaperTrade Intent Cancel\",\"version\":\"2\",\"chainId\":999,\"verifyingContract\":\"0x6cd5661646289fb6e65ea5c032310fded797d0a2\"},\"message\":{\"user\":\"0x14791697260e4c9a71f18484c9f997b308e59325\",\"intentId\":\"0xc2bc1984b6b08b26186b7579d4a279f24937865b82683d9ed4199f40012cb959\",\"deadline\":\"1791864000\"},\"primaryType\":\"CancelIntent\",\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"CancelIntent\":[{\"name\":\"user\",\"type\":\"address\"},{\"name\":\"intentId\",\"type\":\"bytes32\"},{\"name\":\"deadline\",\"type\":\"uint256\"}]}}"
+  }
+ ],
+ "rejected": [
+  {
+   "name": "open BTC under domain name \"Exchange\"",
+   "case": "open BTC long 1000x $10 from balance",
+   "domain": {
+    "name": "Exchange",
+    "version": "1",
+    "chainId": 999,
+    "verifyingContract": "0x6cd5661646289fb6e65ea5c032310fded797d0a2"
+   },
+   "separator": "0x6843a8c3aa7d986e3c300dddc6e08b4e9243b51a5c25ffe01dbe0e64ba0eee29",
+   "digest": "0x6c69f1c03eddadf7f016f27199acdc0a23cda304095072b405b1b49393b59bc0",
+   "why": "the exchange domain is named \"String\"; any other name signs a digest the contract will not recover to the session key"
+  },
+  {
+   "name": "open BTC under chain 998",
+   "case": "open BTC long 1000x $10 from balance",
+   "domain": {
+    "name": "String",
+    "version": "1",
+    "chainId": 998,
+    "verifyingContract": "0x6cd5661646289fb6e65ea5c032310fded797d0a2"
+   },
+   "separator": "0xe813c3962c6b2f1dbd365b9a7c3a8391d8c752da8e6c17deda759c43b96e4155",
+   "digest": "0x73f07924c767d9983605fa242af3d516eb75380d9a7437170d027726151e5293",
+   "why": "the deployment is chain 999 only"
+  },
+  {
+   "name": "open BTC under the PaperStaking contract",
+   "case": "open BTC long 1000x $10 from balance",
+   "domain": {
+    "name": "String",
+    "version": "1",
+    "chainId": 999,
+    "verifyingContract": "0xaad6c7b0cc3014fc80ffedae0ed7ce5967b0f016"
+   },
+   "separator": "0x82eae9ca173cb71f309e1dd9b65517c1821bde7aee807f0df065341556e5d85a",
+   "digest": "0xe21e780d14c61c1b790298665545336416503ffbb1cb8325d1a9ec36b8a94225",
+   "why": "OpenPosition is verified by the exchange contract"
+  },
+  {
+   "name": "open BTC signed by the wallet instead of the session key",
+   "case": "open BTC long 1000x $10 from balance",
+   "signature": "0xca57a9014fc6461e6679576bf3ea0144d392ab30a5b587e38bf3431eaa1a087a5ab406b838bf65c0d8e6bd7d2f628568b653c3b83f56f2a3f62480cb6785b1881b",
+   "signer": "0x14791697260e4c9a71f18484c9f997b308e59325",
+   "intentId": "0x8d9fb17d297b2c37f5c938137f9f0f1b13103f9dc27959413752868ae783c347",
+   "why": "same digest, different signer: the intent id commits to the signer, so it differs from the case intent id"
+  }
+ ]
+}

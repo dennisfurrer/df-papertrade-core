@@ -1,0 +1,29 @@
+[package]
+name = "hl-papertrade"
+description = "Papertrade, a perps venue on HyperEVM priced at Hyperliquid's BBO mid: its intents and their signatures, the relayer, the live account and trading state, deposit addresses, and the venue's own math (bust, impact, PAPER mint)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+hl-core.workspace = true
+hl-evm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[features]
+default = []
+# The curve: a session key held in memory, and recovering who signed an intent. Without it every
+# intent still builds its typed data, digest and payload, given a signature made elsewhere.
+sign = ["hl-core/sign", "hl-evm/sign"]
+
+[dev-dependencies]
+hl-core = { workspace = true, features = ["sign"] }
+# Itself with `sign`, so the tests cover recovery and the session key; a normal build is unaffected.
+hl-papertrade = { path = ".", features = ["sign"] }
+
+[lints]
+workspace = true
