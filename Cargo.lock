@@ -155,6 +155,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "df-hyperliquid-core"
+version = "0.0.8-beta"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60225e5539b7e851c42360c29304d3bf3899907ce2879eabfe96f75842c7ef3d"
+dependencies = [
+ "futures-util",
+ "getrandom 0.2.17",
+ "k256",
+ "keccak",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite",
+ "zeroize",
+]
+
+[[package]]
+name = "df-papertrade-core"
+version = "0.0.8-beta"
+dependencies = [
+ "df-hyperliquid-core",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "zeroize",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -372,94 +403,6 @@ name = "hashbrown"
 version = "0.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
-
-[[package]]
-name = "hl-core"
-version = "0.1.0"
-source = "git+ssh://git@github.com/dennisfurrer/hl-rust.git?tag=v0.1.0#ca6596874441e959a94eede8d27eaabf219fd01e"
-dependencies = [
- "getrandom 0.2.17",
- "k256",
- "keccak",
- "serde",
- "serde_json",
- "thiserror",
- "zeroize",
-]
-
-[[package]]
-name = "hl-evm"
-version = "0.1.0"
-source = "git+ssh://git@github.com/dennisfurrer/hl-rust.git?tag=v0.1.0#ca6596874441e959a94eede8d27eaabf219fd01e"
-dependencies = [
- "hl-core",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "hl-native"
-version = "0.1.0"
-source = "git+ssh://git@github.com/dennisfurrer/hl-rust.git?tag=v0.1.0#ca6596874441e959a94eede8d27eaabf219fd01e"
-dependencies = [
- "futures-util",
- "hl-core",
- "hl-ws",
- "reqwest",
- "thiserror",
- "tokio",
- "tokio-tungstenite",
-]
-
-[[package]]
-name = "hl-papertrade"
-version = "0.1.0"
-dependencies = [
- "hl-core",
- "hl-evm",
- "hl-native",
- "hl-papertrade",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "hl-papertrade-client"
-version = "0.1.0"
-dependencies = [
- "hl-core",
- "hl-evm",
- "hl-papertrade",
- "hl-transfer",
- "serde_json",
- "thiserror",
- "zeroize",
-]
-
-[[package]]
-name = "hl-transfer"
-version = "0.1.0"
-source = "git+ssh://git@github.com/dennisfurrer/hl-rust.git?tag=v0.1.0#ca6596874441e959a94eede8d27eaabf219fd01e"
-dependencies = [
- "hl-core",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "hl-ws"
-version = "0.1.0"
-source = "git+ssh://git@github.com/dennisfurrer/hl-rust.git?tag=v0.1.0#ca6596874441e959a94eede8d27eaabf219fd01e"
-dependencies = [
- "hl-core",
- "serde",
- "serde_json",
- "thiserror",
-]
 
 [[package]]
 name = "hmac"
