@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://dfurrer.com">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/dfu-dark.svg">
-      <img src="assets/dfu-light.svg" alt="DFU" width="64">
+      <source media="(prefers-color-scheme: dark)" srcset="https://dfu-cl-storybook.pages.dev/brand/markdfu-raised.svg">
+      <img src="https://dfu-cl-storybook.pages.dev/brand/markdfu-raised-ink.svg" alt="DFU" width="72">
     </picture>
   </a>
 </p>
