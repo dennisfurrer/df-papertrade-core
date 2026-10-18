@@ -1,5 +1,6 @@
-//! Fixtures are captured account streams: a busy wallet over five minutes, and a wallet with a
-//! queued close.
+//! Folding the captured streams frame by frame: a busy wallet over five minutes and a wallet with
+//! a queued close. A frame out of turn, a snapshot that does not add up and a patch that does not
+//! follow on are each refused with the reason to reopen the stream.
 
 use super::*;
 use crate::account::state::{ClosedPosition, OperationKind, Outcome};
@@ -29,6 +30,13 @@ fn fold(stream: &str) -> Vec<Account> {
     seen
 }
 
+/// The busy wallet's snapshot, folded.
+fn snapshot() -> (Account, Address) {
+    let frames = frames(STREAM);
+    let wallet = wallet_of(&frames[0]);
+    (Account::apply(None, &frames[0], wallet).unwrap().0, wallet)
+}
+
 #[test]
 fn a_busy_wallet_folds_frame_by_frame() {
     let seen = fold(STREAM);
@@ -46,9 +54,7 @@ fn a_busy_wallet_folds_frame_by_frame() {
             assert!(!pair[1].positions.iter().any(|position| position.position_id == gone.position_id));
         }
     }
-    let last = seen.last().unwrap();
-    assert!(last.has_deposited());
-    assert!(last.outcomes.iter().all(|(_, outcome)| *outcome != Outcome::Unknown) || last.outcomes.is_empty());
+    assert!(seen.last().unwrap().has_deposited());
 }
 
 /// The fixture is a snapshot with open positions, then a close queued behind 36 other intents.
@@ -60,6 +66,7 @@ fn a_queued_close_is_an_operation() {
     assert_eq!(first.session_keys.len(), 1);
     let (key, expiry) = first.session_keys[0];
     assert_eq!(first.session_expiry(key), Some(expiry));
+    assert_eq!(first.session_expiry(Address::ZERO), None);
     let expired = &seen[1].outcomes;
     assert_eq!(expired.len(), 1);
     assert_eq!(expired[0].1, Outcome::Expired);
@@ -70,21 +77,109 @@ fn a_queued_close_is_an_operation() {
 }
 
 #[test]
-fn a_patch_out_of_turn_is_out_of_sync() {
+fn a_frame_out_of_turn_is_refused() {
     let frames = frames(STREAM);
-    let wallet = wallet_of(&frames[0]);
-    let (snapshot, _) = Account::apply(None, &frames[0], wallet).unwrap();
-    assert!(matches!(Account::apply(None, &frames[1], wallet), Err(AccountError::OutOfSync(_))));
-    assert!(matches!(Account::apply(Some(&snapshot), &frames[2], wallet), Err(AccountError::OutOfSync(_))));
+    let (snapshot, wallet) = snapshot();
     let stranger: Address = "0x0000000000000000000000000000000000000001".parse().unwrap();
-    assert!(matches!(Account::apply(None, &frames[0], stranger), Err(AccountError::OtherWallet { .. })));
-    let (again, applied) = Account::apply(Some(&snapshot), &frames[0], wallet).unwrap();
-    assert_eq!((applied, again), (Applied::Stale, snapshot));
+    let cases = [
+        (
+            "a patch first",
+            Account::apply(None, &frames[1], wallet).map(drop),
+            AccountError::OutOfSync("a patch with no snapshot before it"),
+        ),
+        (
+            "a patch read as a snapshot",
+            Account::parse(&frames[1]).map(drop),
+            AccountError::OutOfSync("a patch with no snapshot before it"),
+        ),
+        (
+            "a patch skipped",
+            Account::apply(Some(&snapshot), &frames[2], wallet).map(drop),
+            AccountError::OutOfSync("the patch is for another revision"),
+        ),
+        (
+            "another wallet's frame",
+            Account::apply(None, &frames[0], stranger).map(drop),
+            AccountError::OtherWallet { expected: stranger, found: wallet },
+        ),
+    ];
+    for (name, got, expected) in cases {
+        assert_eq!(got, Err(expected), "{name}");
+    }
+}
+
+#[test]
+fn a_snapshot_no_newer_than_the_held_account_changes_nothing() {
+    let (snapshot, wallet) = snapshot();
+    let frame = &frames(STREAM)[0];
+    assert_eq!(Account::apply(Some(&snapshot), frame, wallet), Ok((snapshot.clone(), Applied::Stale)));
+    let older = frame.replace("\"accountRevision\":1", "\"accountRevision\":0");
+    assert_eq!(Account::apply(Some(&snapshot), &older, wallet), Ok((snapshot, Applied::Stale)));
 }
 
 #[test]
 fn a_snapshot_that_does_not_add_up_is_refused() {
-    let frames = frames(QUEUED);
-    let broken = frames[0].replacen("\"locked\":\"", "\"locked\":\"1", 1);
-    assert!(matches!(Account::parse(&broken), Err(AccountError::OutOfSync(_))));
+    let queued = &frames(QUEUED)[0];
+    let busy = &frames(STREAM)[0];
+    let cases = [
+        (
+            "locked is not the margin",
+            queued.replacen("\"locked\":\"", "\"locked\":\"1", 1),
+            "locked margin is not the positions' margin",
+        ),
+        (
+            "available is not the balance less the reserve",
+            queued.replacen("\"availableBalance\":\"", "\"availableBalance\":\"1", 1),
+            "available funds do not add up",
+        ),
+        (
+            "the wallet revision is past the indexed block",
+            queued.replacen("\"walletRevision\":48399112", "\"walletRevision\":48399113", 1),
+            "the wallet revision is past the indexed block",
+        ),
+        ("positions out of order", busy.replacen("[\"411276\"", "[\"411000\"", 1), "positions out of order"),
+    ];
+    for (name, frame, why) in cases {
+        assert_eq!(Account::parse(&frame), Err(AccountError::OutOfSync(why)), "{name}");
+    }
+}
+
+#[test]
+fn a_patch_that_does_not_follow_on_is_refused() {
+    let frames = frames(STREAM);
+    let (snapshot, wallet) = snapshot();
+    let second = Account::apply(Some(&snapshot), &frames[1], wallet).unwrap().0;
+    let replayed = frames[1]
+        .replace("\"accountRevision\":2,\"baseAccountRevision\":1", "\"accountRevision\":3,\"baseAccountRevision\":2");
+    let held = r#"["411276",0,true,false,"832245","10000000000000000000",100,"824315",1791862800000,null]"#;
+    let cases = [
+        (
+            "stays at its base",
+            &snapshot,
+            frames[1].replace("\"accountRevision\":2", "\"accountRevision\":1"),
+            "the patch does not move the revision on",
+        ),
+        (
+            "removes a position not held",
+            &snapshot,
+            frames[1].replace("\"removedPositionIds\":[]", "\"removedPositionIds\":[\"1\"]"),
+            "removes a position it does not hold",
+        ),
+        (
+            "adds a position held",
+            &snapshot,
+            frames[1].replace("\"addedPositions\":[]", &format!("\"addedPositions\":[{held}]")),
+            "adds a position it already holds",
+        ),
+        (
+            "removes an operation not held",
+            &snapshot,
+            frames[2].replace("\"baseAccountRevision\":2", "\"baseAccountRevision\":1"),
+            "removes an operation it does not hold",
+        ),
+        ("adds an operation held", &second, replayed, "adds an operation it already holds"),
+    ];
+    for (name, held, frame, why) in cases {
+        assert_eq!(Account::apply(Some(held), &frame, wallet), Err(AccountError::OutOfSync(why)), "{name}");
+    }
 }

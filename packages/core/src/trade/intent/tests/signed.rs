@@ -3,7 +3,7 @@
 use serde_json::Value;
 
 use super::*;
-use crate::trade::intent::vectors::{cases, intent_of, signature_of, signer_of, text, vectors};
+use crate::trade::intent::vectors::{cases, signature_of, signer_of, text, vectors};
 
 #[test]
 fn the_payload_and_intent_id_are_the_apps() {
@@ -47,43 +47,35 @@ fn the_tag_is_the_apps() {
 }
 
 #[test]
-fn a_body_is_what_the_relayer_takes() {
+fn each_body_is_what_the_relayer_takes_at_its_path() {
     let vectors = vectors();
-    let find = |kind: &str| {
-        let case = vectors["cases"].as_array().unwrap().iter().find(|case| text(case, "primaryType") == kind).unwrap();
-        let (_, signer) = signer_of(&vectors, case);
-        (case, intent_of(case).unwrap().signed(signature_of(case), signer))
-    };
-
-    let (case, open) = find("OpenPosition");
-    assert_eq!(open.path(), "/intents");
-    let body: Value = serde_json::from_str(&open.body()).unwrap();
-    assert_eq!(body["action"], "openPosition");
-    assert_eq!(body["signed"], case["signed"]);
-    assert_eq!(body.as_object().unwrap().len(), 2);
-
-    let (_, withdraw) = find("WithdrawToCore");
-    let body: Value = serde_json::from_str(&withdraw.body()).unwrap();
-    assert_eq!(body["action"], "withdrawToCore");
-    assert_eq!(body["withdrawal"], serde_json::json!({"route": "hypercore"}));
-
-    let (case, cancel) = find("CancelIntent");
-    let target = text(&case["message"], "intentId");
-    assert_eq!(cancel.path(), format!("/intents/{target}/cancel"));
-    let body: Value = serde_json::from_str(&cancel.body()).unwrap();
-    let mut expected = case["signed"].clone();
-    expected.as_object_mut().unwrap().remove("intentId");
-    assert_eq!(body, expected, "the payload without the id the path names");
-
-    for (kind, action) in [
+    let actions = [
         ("RegisterSessionKey", "registerSessionKey"),
+        ("OpenPosition", "openPosition"),
         ("Close", "closePositions"),
+        ("WithdrawToCore", "withdrawToCore"),
         ("Stake", "paperStake"),
         ("Unstake", "paperUnstake"),
         ("Claim", "paperClaim"),
-    ] {
-        let (_, signed) = find(kind);
+    ];
+    for (case, intent) in cases(&vectors) {
+        let name = text(case, "name");
+        let (_, signer) = signer_of(&vectors, case);
+        let signed = intent.signed(signature_of(case), signer);
         let body: Value = serde_json::from_str(&signed.body()).unwrap();
-        assert_eq!(body["action"], action);
+        if text(case, "primaryType") == "CancelIntent" {
+            let target = text(&case["message"], "intentId");
+            assert_eq!(signed.path(), format!("/intents/{target}/cancel"), "{name}");
+            let mut expected = case["signed"].clone();
+            expected.as_object_mut().unwrap().remove("intentId");
+            assert_eq!(body, expected, "{name}: the payload without the id the path names");
+            continue;
+        }
+        let (_, action) = actions.iter().find(|(kind, _)| *kind == text(case, "primaryType")).unwrap();
+        let mut expected = serde_json::json!({"action": action, "signed": case["signed"]});
+        if *action == "withdrawToCore" {
+            expected["withdrawal"] = serde_json::json!({"route": "hypercore"});
+        }
+        assert_eq!((signed.path(), body), ("/intents".to_owned(), expected), "{name}");
     }
 }

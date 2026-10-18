@@ -50,3 +50,7 @@ impl Position {
         Ok(position)
     }
 }
+
+#[cfg(test)]
+#[path = "tests/position.rs"]
+mod tests;

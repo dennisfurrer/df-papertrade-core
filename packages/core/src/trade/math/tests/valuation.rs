@@ -41,7 +41,7 @@ fn the_impact_curve_keeps_what_the_docs_say() {
     let (tenth, _) = keep(1_001_000);
     assert_eq!(tenth, 754, "75.4%, 73.9% after the fee");
     let (huge, _) = keep(2_000_000);
-    assert!(huge < 900, "under 1 − base rate");
+    assert!(huge < 900, "under one less the base rate");
 }
 
 #[test]
@@ -93,4 +93,24 @@ fn a_retired_market_values_at_its_frozen_price() {
     assert!(!valued.liquidated && valued.risk_bp.is_none());
     instrument.frozen_ask = None;
     assert_eq!(value(&long, &instrument, 1, WIN_FEE_RATE), Err(ValuationError::NoPrice));
+}
+
+#[test]
+fn a_position_that_cannot_be_valued_is_refused() {
+    let instrument = btc();
+    let long = position(true, 1_000_000, 100);
+    let cases = [
+        (
+            "on another market",
+            Position { instrument_id: 1, ..long.clone() },
+            1_000_000,
+            ValuationError::WrongInstrument,
+        ),
+        ("a mark past 64 bits", long.clone(), u128::from(u64::MAX) + 1, ValuationError::OutOfRange),
+        ("an entry of zero", Position { entry_price: 0, ..long.clone() }, 1_000_000, ValuationError::OutOfRange),
+        ("a notional past 128 bits", Position { margin: u128::MAX, ..long }, 1_010_000, ValuationError::OutOfRange),
+    ];
+    for (name, position, mark, expected) in cases {
+        assert_eq!(value(&position, &instrument, mark, WIN_FEE_RATE), Err(expected), "{name}");
+    }
 }

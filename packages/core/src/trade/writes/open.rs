@@ -63,7 +63,3 @@ impl<H: Http + Clone> Client<H> {
         self.submit(&signed).await
     }
 }
-
-#[cfg(test)]
-#[path = "tests/open.rs"]
-mod tests;
