@@ -230,10 +230,13 @@ async fn a_send_hyperliquid_refuses_or_fails_leaves_the_rest_unsent() {
     let refusing = agreed(true).exchange(r#"{"status":"err","response":"Insufficient balance for withdrawal"}"#);
     let failing = agreed(true).exchange(TAKEN).status("/exchange", 502, "bad gateway");
 
+    let garbled = agreed(true).exchange("ok");
     let gateway = TransportError::Status { status: 502, body: "bad gateway".to_owned() };
+    let unread = "the venue's answer on /exchange could not be read: expected value at line 1 column 1 in ok";
     for (venue, stopped) in [
         (refusing, Error::Exchange("Insufficient balance for withdrawal".to_owned())),
         (failing, Error::Transport(gateway)),
+        (garbled, Error::Decode(unread.to_owned())),
     ] {
         let client = client(&venue);
         let deposit = client.plan_deposit(owner(), 25_000_000, Source::Perp, Mode::Standard).await.unwrap();
