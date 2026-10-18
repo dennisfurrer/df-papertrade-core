@@ -15,9 +15,9 @@ pub struct BadWire {
 
 pub(crate) fn bad(what: &str, found: &Json) -> BadWire {
     let mut text = found.compact();
-    if text.len() > 120 {
-        text.truncate(120);
-        text.push('…');
+    if let Some((cut, _)) = text.char_indices().nth(120) {
+        text.truncate(cut);
+        text.push_str("...");
     }
     BadWire { what: what.to_owned(), found: text }
 }
@@ -113,3 +113,7 @@ pub(crate) fn tuple<'a>(json: &'a Json, len: usize, what: &str) -> Result<&'a [J
     }
     Ok(items)
 }
+
+#[cfg(test)]
+#[path = "tests/wire.rs"]
+mod tests;
