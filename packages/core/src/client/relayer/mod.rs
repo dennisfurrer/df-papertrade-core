@@ -56,9 +56,10 @@ impl<H: Http> Relayer<H> {
         }
         let text = String::from_utf8(response.body)
             .map_err(|_| BadWire { what: "body".to_owned(), found: "not UTF-8".to_owned() })?;
-        // A 2xx can still carry a refusal: `{"ok":false}` or an `error` field.
+        // A 2xx can still carry a refusal: `{"ok":false}` or an `error` that is not `null`.
         if let Ok(json) = Json::parse(&text)
-            && (json.get("error").is_some() || matches!(json.get("ok"), Some(Json::Bool(false))))
+            && (json.get("error").is_some_and(|error| *error != Json::Null)
+                || matches!(json.get("ok"), Some(Json::Bool(false))))
         {
             return Err(error::refusal(response.status, text.as_bytes()));
         }

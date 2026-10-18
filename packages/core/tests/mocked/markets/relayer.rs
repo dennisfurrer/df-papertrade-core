@@ -12,7 +12,7 @@ use df_papertrade_core::utils::BadWire;
 use serde_json::Value;
 
 use crate::support::venue::Venue;
-use crate::support::{NOW, client, owner};
+use crate::support::{NOW, client, fixture, owner};
 
 /// The viem vectors' session key, which signs closes and cancels. A published test key.
 const SESSION_KEY: &str = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318";
@@ -86,6 +86,16 @@ async fn a_2xx_that_says_it_refused_is_a_refusal() {
         assert_eq!(summary, Err(Error::Relayer(refused(200, code, message))), "{answer}");
         assert_eq!(venue.relayed(), ["GET /query/protocol/summary"]);
     }
+}
+
+/// `"error": null` says nothing went wrong: the answer is read, not refused.
+#[tokio::test]
+async fn a_2xx_whose_error_is_null_is_an_answer() {
+    let mut answer: Value = serde_json::from_str(&fixture("summary.json")).unwrap();
+    answer["error"] = Value::Null;
+    let venue = Venue::new().get_text("/query/protocol/summary", &answer.to_string());
+    let summary = client(&venue).summary().await.unwrap();
+    assert_eq!(summary.block, 48_399_240);
 }
 
 /// Through a [`Relayer`] of its own at the venue's origin, with no client.
