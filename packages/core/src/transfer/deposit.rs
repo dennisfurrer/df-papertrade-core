@@ -42,6 +42,9 @@ pub struct Deposit {
     pub to: Address,
     /// Whether the address has no HyperCore account yet.
     pub opens_account: bool,
+    /// What opening the address's account takes from the source balance on top of the deposit:
+    /// [`ACTIVATION_FEE_USDC`] when it [`opens_account`](Deposit::opens_account), zero otherwise.
+    pub activation_fee: u64,
     pub sends: Vec<Send>,
 }
 
@@ -95,8 +98,9 @@ impl<H: Http + Clone> Client<H> {
     }
 
     /// Plans a deposit of `usdc` (6 decimals, at least 10 USDC) from `source`, after registering
-    /// the address and checking it against the one derived on chain. A perp balance moves to spot
-    /// first, plus [`ACTIVATION_FEE_USDC`] when the address has no HyperCore account.
+    /// the address and checking it against the one derived on chain. When the address has no
+    /// HyperCore account, its first send also pays [`ACTIVATION_FEE_USDC`] from the source
+    /// balance; a perp balance moves to spot first, fee included.
     pub async fn plan_deposit(&self, owner: Address, usdc: u64, source: Source, mode: Mode) -> Result<Deposit, Error> {
         if usdc < MIN_DEPOSIT_USDC {
             return Err(Error::Invalid("a deposit brings in at least 10 USDC".into()));
@@ -107,6 +111,7 @@ impl<H: Http + Clone> Client<H> {
         }
         let exists = self.rpc().read(&core_user_exists(to)).await.map_err(Error::Precompile)?;
         let opens_account = !exists;
+        let activation_fee = if opens_account { ACTIVATION_FEE_USDC } else { 0 };
         let nonce = self.now_ms();
         let network = Network::Mainnet;
         let sends = match (mode, source) {
@@ -117,14 +122,13 @@ impl<H: Http + Clone> Client<H> {
                 vec![Send::Spot(SpotSend::new(to, network.usdc().wire, amount(usdc)?, nonce))]
             }
             (Mode::Standard, Source::Perp) => {
-                let fee = if opens_account { ACTIVATION_FEE_USDC } else { 0 };
                 vec![
-                    Send::ToSpot(UsdClassTransfer::new(amount(usdc.saturating_add(fee))?, false, nonce)),
+                    Send::ToSpot(UsdClassTransfer::new(amount(usdc.saturating_add(activation_fee))?, false, nonce)),
                     Send::Spot(SpotSend::new(to, network.usdc().wire, amount(usdc)?, nonce + 1)),
                 ]
             }
         };
-        Ok(Deposit { to, opens_account, sends })
+        Ok(Deposit { to, opens_account, activation_fee, sends })
     }
 
     /// Has the wallet sign each send in order and posts it to Hyperliquid once. A failed send

@@ -13,7 +13,7 @@ use df_papertrade_core::Error;
 use df_papertrade_core::account::{Purpose, SignRequest, Wallet, WalletError};
 use df_papertrade_core::client::RelayerError;
 use df_papertrade_core::client::deployment::DEPOSIT_PROXY_FACTORY;
-use df_papertrade_core::transfer::{Deposit, MIN_DEPOSIT_USDC, Mode, Source};
+use df_papertrade_core::transfer::{ACTIVATION_FEE_USDC, Deposit, MIN_DEPOSIT_USDC, Mode, Source};
 use serde_json::{Value, json};
 
 use crate::support::venue::Venue;
@@ -171,6 +171,8 @@ async fn each_balance_plans_its_own_sends_to_the_address() {
 
         let case = format!("{mode:?} from {source:?}, opened: {opened}");
         assert_eq!(deposit.opens_account, !opened, "{case}");
+        let fee = if opened { 0 } else { ACTIVATION_FEE_USDC };
+        assert_eq!(deposit.activation_fee, fee, "{case}: what opening the address costs, from any balance");
         assert_eq!(sent(&venue, &deposit), planned, "{case}");
         let last = venue.exchanged().pop().unwrap();
         assert_eq!(last["action"]["destination"], PROXY, "{case}");
