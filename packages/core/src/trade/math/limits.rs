@@ -89,6 +89,8 @@ pub enum OpenRefusal {
     AboveMaximumPosition,
     #[error("leverage exceeds this market's limit")]
     LeverageTooHigh,
+    #[error("leverage is under the venue's minimum")]
+    LeverageTooLow,
     #[error("insufficient available funds")]
     InsufficientFunds,
     #[error("the margin exceeds the debt the next queue entries can fund")]
@@ -119,8 +121,12 @@ pub fn check_open(
     if !state.accepts("openPosition") {
         return Err(OpenRefusal::IntakePaused);
     }
-    if leverage == 0 || leverage > instrument.max_leverage {
+    let (lowest, highest) = state.leverage_range(instrument);
+    if leverage == 0 || leverage > highest {
         return Err(OpenRefusal::LeverageTooHigh);
+    }
+    if leverage < lowest {
+        return Err(OpenRefusal::LeverageTooLow);
     }
     if margin < state.minimum_margin {
         return Err(OpenRefusal::BelowMinimumMargin);

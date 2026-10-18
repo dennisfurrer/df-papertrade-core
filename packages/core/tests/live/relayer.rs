@@ -5,6 +5,7 @@
 
 use df_papertrade_core::client::Call;
 use df_papertrade_core::client::deployment::{GENESIS_MS, LISTINGS};
+use df_papertrade_core::trade::math::WIN_FEE_RATE;
 use df_papertrade_core::utils::units;
 
 use crate::tap::{reader, same_shape};
@@ -22,7 +23,10 @@ async fn the_trading_state_lists_its_markets() {
         let instrument = state.instrument(listing.id).unwrap();
         let listed = (instrument.symbol.as_str(), instrument.asset_index, instrument.price_scale);
         assert_eq!(listed, (listing.symbol, listing.asset_index, listing.price_scale));
+        let (lowest, highest) = state.leverage_range(instrument);
+        assert!(1 <= lowest && lowest <= highest, "{}: {lowest} to {highest}", listing.symbol);
     }
+    assert_eq!(state.win_fee_rate, Some(WIN_FEE_RATE), "the relayer's win fee is the one the math assumes");
     assert!(state.minimum_margin > 0 && state.minimum_open_notional >= state.minimum_margin);
 }
 

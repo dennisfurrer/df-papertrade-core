@@ -8,8 +8,9 @@ use crate::account::state::Position;
 use crate::markets::trading::Instrument;
 use crate::utils::units::WAD;
 
-/// Win fee on a winning close's gain, 18-decimal fraction (2%). Read from `winFeeRate()`
-/// on 2026-10-13.
+/// Win fee on a winning close's gain, 18-decimal fraction (2%), as `winFeeRate()` and the
+/// relayer's [`TradingState::win_fee_rate`](crate::markets::TradingState::win_fee_rate) both
+/// read on 2026-10-18. Prefer the live figure where one is at hand.
 pub const WIN_FEE_RATE: u128 = 20_000_000_000_000_000;
 
 /// The deadband is `entry / 50000`, 0.2 basis points of the entry price.

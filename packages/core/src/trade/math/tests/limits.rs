@@ -22,6 +22,7 @@ fn an_open_is_refused_by_the_first_check_it_fails() {
     let paused_opens = Intake { revision: 1, paper_stake_minimum: 0, paused: vec!["openPosition".to_owned()] };
     let no_opens = TradingState { intake: Some(paused_opens), ..state.clone() };
     let closed = Instrument { paused: true, ..btc.clone() };
+    let bounded = TradingState { minimum_leverage: Some(5), maximum_leverage: Some(500), ..state.clone() };
     // (name, state, instrument, margin in dollars, leverage, mark, available, queue room, result)
     let cases = [
         ("within every limit", &state, btc, 10, 1000, Some(MARK), 100, None, Ok(())),
@@ -30,6 +31,9 @@ fn an_open_is_refused_by_the_first_check_it_fails() {
         ("opens paused at intake", &no_opens, btc, 10, 1000, Some(MARK), 100, None, Err(OpenRefusal::IntakePaused)),
         ("no leverage", &state, btc, 10, 0, Some(MARK), 100, None, Err(OpenRefusal::LeverageTooHigh)),
         ("past the market's leverage", &state, btc, 10, 1001, Some(MARK), 100, None, Err(OpenRefusal::LeverageTooHigh)),
+        ("past the venue's leverage", &bounded, btc, 10, 501, Some(MARK), 100, None, Err(OpenRefusal::LeverageTooHigh)),
+        ("under the venue's leverage", &bounded, btc, 10, 4, Some(MARK), 100, None, Err(OpenRefusal::LeverageTooLow)),
+        ("within the venue's bounds", &bounded, btc, 10, 500, Some(MARK), 100, None, Ok(())),
         ("under the minimum margin", &state, btc, 9, 1000, Some(MARK), 100, None, Err(OpenRefusal::BelowMinimumMargin)),
         (
             "past the largest position",

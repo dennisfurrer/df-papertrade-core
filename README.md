@@ -18,7 +18,7 @@ df-papertrade-core
 ├── client          Client, config and reads, HyperEVM reads, deployment
 │   └── relayer     requests as values, answers, the sender
 ├── markets
-│   ├── trading     trading state, instruments, the relayer's intake
+│   ├── trading     trading state, instruments, leverage bounds, the relayer's intake
 │   └── stats       protocol summary, volumes, payout queue, recent trades, queue rank
 ├── account         key and nonce storage, wallet
 │   ├── state       live account from the stream

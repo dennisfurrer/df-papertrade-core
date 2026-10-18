@@ -54,6 +54,26 @@ fn the_intake_controls_say_which_actions_are_taken() {
     assert!(!state.accepts("openPosition") && state.accepts("closePositions"));
 }
 
+/// The venue-wide leverage bounds and the win fee: 0 is no bound, as mainnet sends while none is
+/// set, and an answer from before these fields reads as none and unknown.
+#[test]
+fn the_leverage_bounds_and_the_win_fee_read_and_zero_is_no_bound() {
+    let state = TradingState::parse(MAINNET).unwrap();
+    assert_eq!((state.minimum_leverage, state.maximum_leverage), (None, None));
+    assert_eq!(state.win_fee_rate, Some(20_000_000_000_000_000), "2%");
+    let btc = state.by_symbol("BTC").unwrap();
+    assert_eq!(state.leverage_range(btc), (1, 1000), "the market's own cap alone");
+    let bounded = edited_from(MAINNET, |json| {
+        json["minimumLeverage"] = json!(5);
+        json["maximumLeverage"] = json!(500);
+    });
+    let state = TradingState::parse(&bounded).unwrap();
+    assert_eq!((state.minimum_leverage, state.maximum_leverage), (Some(5), Some(500)));
+    assert_eq!(state.leverage_range(state.by_symbol("BTC").unwrap()), (5, 500));
+    let older = TradingState::parse(TRADING).unwrap();
+    assert_eq!((older.minimum_leverage, older.maximum_leverage, older.win_fee_rate), (None, None, None));
+}
+
 /// Without intake controls every action is taken, as before the relayer sent any.
 #[test]
 fn a_state_with_no_intake_takes_every_action() {
@@ -85,6 +105,9 @@ fn a_state_that_does_not_read_names_what_failed() {
         (json!({"intakeControls": [1, "1000", [7]]}), "trading_intake_action"),
         (json!({"intakeControls": ["r1", "1000", []]}), "trading_intake_revision"),
         (json!({"intakeControls": [1, "-1", []]}), "trading_paper_stake_minimum"),
+        (json!({"maximumLeverage": "lots"}), "trading_maximum_leverage"),
+        (json!({"minimumLeverage": -1}), "trading_minimum_leverage"),
+        (json!({"winFeeRateRaw": "2%"}), "trading_win_fee_rate"),
     ] {
         let text = edited(|json| {
             for (key, value) in edit.as_object().unwrap() {
