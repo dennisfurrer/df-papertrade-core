@@ -89,7 +89,3 @@ impl<H: Http + Clone> Client<H> {
         Call::account_stream(owner).request(&self.config().relayer).url
     }
 }
-
-#[cfg(test)]
-#[path = "tests/reads.rs"]
-mod tests;

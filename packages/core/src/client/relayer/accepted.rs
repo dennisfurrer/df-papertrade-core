@@ -34,3 +34,7 @@ impl Accepted {
         matches!(self.state.as_str(), "queued" | "prepared" | "confirmed")
     }
 }
+
+#[cfg(test)]
+#[path = "tests/accepted.rs"]
+mod tests;
