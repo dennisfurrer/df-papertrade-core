@@ -82,7 +82,3 @@ impl<H: Http> Relayer<H> {
         Ok(accepted)
     }
 }
-
-#[cfg(test)]
-#[path = "tests/relayer.rs"]
-mod tests;

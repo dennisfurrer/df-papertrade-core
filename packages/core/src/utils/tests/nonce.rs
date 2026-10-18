@@ -1,16 +1,25 @@
-//! First nonces from three random bytes, lanes that count up, and which lane an intent spends.
+//! First nonces from three random bytes, lanes that count up, and which lane each intent spends.
 
 use df_hyperliquid_core::utils::Address;
 
 use super::*;
-use crate::trade::intent::{CancelIntent, Claim, Intent};
+use crate::trade::intent::{
+    CancelIntent, Claim, Close, Intent, OpenPosition, RegisterSessionKey, Staking, WithdrawToCore,
+};
 
 #[test]
 fn a_lane_starts_where_the_app_starts_it() {
-    assert_eq!(first([0, 0, 0]), 256, "never zero");
-    assert_eq!(first([0, 0, 1]), 256);
-    assert_eq!(first([0x30, 0x62, 0x01]), 0x30_6201 * 256);
-    assert_eq!(first([0xff, 0xff, 0xff]), 0xff_ffff * 256);
+    for (random, nonce) in [
+        ([0, 0, 0], 256),
+        ([0, 0, 1], 256),
+        ([0, 0, 2], 512),
+        ([0x30, 0x62, 0x01], 0x30_6201 * 256),
+        ([0xff, 0xff, 0xff], 0xff_ffff * 256),
+    ] {
+        assert_eq!(first(random), nonce, "{random:?}");
+    }
+    let seeded = Nonces::seeded([0, 0, 2], [7, 7, 7]);
+    assert_eq!((seeded.peek(Lane::Exchange), seeded.peek(Lane::Staking)), (512, 0x07_0707 * 256));
 }
 
 #[test]
@@ -21,12 +30,37 @@ fn each_lane_counts_up_on_its_own() {
     assert_eq!(nonces.peek(Lane::Exchange), 3_170_818);
     assert_eq!(nonces.take(Lane::Staking), 77);
     assert_eq!(nonces.peek(Lane::Staking), 78);
+    let mut last = Nonces::resume(u128::MAX, 0);
+    assert_eq!((last.take(Lane::Exchange), last.peek(Lane::Exchange)), (u128::MAX, u128::MAX), "stops at the top");
 }
 
 #[test]
-fn staking_spends_its_own_lane_and_a_cancel_none() {
-    let claim = Intent::Claim(Claim { user: Address::ZERO, nonce: 1, deadline: 2 });
-    assert_eq!(Lane::of(&claim), Some(Lane::Staking));
-    let cancel = Intent::CancelIntent(CancelIntent { user: Address::ZERO, intent_id: [0; 32], deadline: 2 });
-    assert_eq!(Lane::of(&cancel), None);
+fn each_intent_spends_its_contract_s_lane_and_a_cancel_none() {
+    let user = Address::ZERO;
+    let key: Address = "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23".parse().unwrap();
+    let staking = Staking { user, amount: 1, nonce: 1, deadline: 2 };
+    for (intent, lane) in [
+        (Intent::RegisterSessionKey(RegisterSessionKey::new(user, key, 3, 1, 2).unwrap()), Some(Lane::Exchange)),
+        (
+            Intent::OpenPosition(OpenPosition {
+                user,
+                instrument_id: 0,
+                is_long: true,
+                size: 1,
+                leverage: 1,
+                use_debt: false,
+                nonce: 1,
+                deadline: 2,
+            }),
+            Some(Lane::Exchange),
+        ),
+        (Intent::Close(Close::new(user, &[1], 1, 2).unwrap()), Some(Lane::Exchange)),
+        (Intent::WithdrawToCore(WithdrawToCore { user, amount: 1, nonce: 1, deadline: 2 }), Some(Lane::Exchange)),
+        (Intent::Stake(staking.clone()), Some(Lane::Staking)),
+        (Intent::Unstake(staking), Some(Lane::Staking)),
+        (Intent::Claim(Claim { user, nonce: 1, deadline: 2 }), Some(Lane::Staking)),
+        (Intent::CancelIntent(CancelIntent { user, intent_id: [0; 32], deadline: 2 }), None),
+    ] {
+        assert_eq!(Lane::of(&intent), lane, "{}", intent.primary_type());
+    }
 }

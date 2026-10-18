@@ -26,3 +26,7 @@ pub(super) fn refusal(status: u16, body: &[u8]) -> RelayerError {
     let text = |key: &str| json.as_ref().and_then(|json| json.get(key)).and_then(Json::as_str).map(str::to_owned);
     RelayerError::Refused { status, code: text("error").or_else(|| text("code")), message: text("message") }
 }
+
+#[cfg(test)]
+#[path = "tests/error.rs"]
+mod tests;
