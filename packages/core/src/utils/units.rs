@@ -21,12 +21,6 @@ pub fn to_dec(raw: u128, decimals: u32) -> Option<Dec> {
     Dec::new(i128::try_from(raw).ok()?, decimals)
 }
 
-/// A signed amount (a PnL), `raw / 10^decimals`.
-#[must_use]
-pub fn signed_to_dec(raw: i128, decimals: u32) -> Option<Dec> {
-    Dec::new(raw, decimals)
-}
-
 /// The raw integer of a non-negative amount at `decimals`, rounded toward zero so it never
 /// exceeds the input.
 #[must_use]

@@ -1,4 +1,5 @@
-//! Deposits from Hyperliquid into the venue.
+//! Moving money into the venue: [`deposit`] plans and sends USDC from the wallet's Hyperliquid
+//! balance to its deposit address. Withdrawals are intents, in [`crate::trade`].
 
 pub mod deposit;
 

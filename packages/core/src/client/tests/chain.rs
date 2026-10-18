@@ -1,3 +1,5 @@
+//! Each read's calldata and decoding, against `cast calldata` and answers from the mainnet RPC.
+
 use df_hyperliquid_core::utils::{Address, hex};
 
 use super::*;
@@ -31,11 +33,4 @@ fn the_fee_and_reward_reads_answer_integers() {
     let pending = pending_reward(wallet).unwrap();
     assert_eq!(pending.to, PAPER_STAKING);
     assert_eq!(&pending.data[16..], wallet.bytes());
-}
-
-#[test]
-fn the_bbo_reads_the_market_index() {
-    let read = bbo(1);
-    assert_eq!(read.at, df_hyperliquid_core::client::evm::precompiles::address(0x80e));
-    assert_eq!(read.data, word("0000000000000000000000000000000000000000000000000000000000000001"));
 }

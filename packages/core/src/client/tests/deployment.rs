@@ -1,3 +1,5 @@
+//! The deployment against the chain: domain separators as read on chain, every address set.
+
 use df_hyperliquid_core::utils::hex;
 
 use super::*;

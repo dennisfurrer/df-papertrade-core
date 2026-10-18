@@ -1,17 +1,10 @@
-use crate::client::relayer::RelayerError;
+//! Reads over a scripted wire: the relayer's answers and HyperEVM's.
+
 use df_hyperliquid_core::client::Method;
 
 use super::*;
-use crate::client::Error;
-
-#[test]
-fn a_page_reaches_the_relayer_through_its_app() {
-    let wire = Wire::default();
-    let client = client(&wire);
-    assert_eq!(client.config().relayer, RELAY);
-    assert_eq!(client.stream_url(owner()), format!("{RELAY}/state/user/live?wallet={}", owner().to_hex()));
-    assert!(Config::mainnet(now, sevens).relayer.starts_with("https://"));
-}
+use crate::client::RelayerError;
+use crate::test_support::{RPC, TRADING, Wire, block_on, body, client};
 
 #[test]
 fn the_trading_state_reads_through_the_wire() {
@@ -29,4 +22,14 @@ fn a_refusal_keeps_the_relayers_code() {
     assert!(
         matches!(e, Error::Relayer(RelayerError::Refused { status: 422, code: Some(code), .. }) if code == "deadline_expired")
     );
+}
+
+/// The BBO precompile (`0x...080e`) is read for the market's perp index, and the quote is its mid.
+#[test]
+fn a_quote_is_the_books_mid() {
+    let answer = format!(r#"{{"jsonrpc":"2.0","id":1,"result":"0x{:064x}{:064x}"}}"#, 829_100, 829_110);
+    let wire = Wire::default().on(Method::Post, RPC, "000000000000000000000000000000000000080e", 200, &answer);
+    let quote = block_on(client(&wire).quote(1)).unwrap();
+    assert_eq!(quote, Quote { bid: 829_100, ask: 829_110, mid: 829_105 });
+    assert_eq!(body(&wire.sent()[0])["params"][0]["data"], format!("0x{:064x}", 1));
 }

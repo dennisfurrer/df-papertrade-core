@@ -1,3 +1,5 @@
+//! First nonces from three random bytes, lanes that count up, and which lane an intent spends.
+
 use df_hyperliquid_core::utils::Address;
 
 use super::*;

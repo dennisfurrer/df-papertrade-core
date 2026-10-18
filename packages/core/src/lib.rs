@@ -1,8 +1,9 @@
 //! Papertrade SDK for Rust: perps on HyperEVM at Hyperliquid's BBO mid, gasless through a relayer.
 //!
-//! - [`client`]: the relayer, the deployment, HyperEVM reads and the [`Client`].
-//! - [`markets`]: the trading state, protocol summary, payout queue and recent trades.
-//! - [`account`]: the live account, session keys, storage and the wallet.
+//! - [`client`]: the [`Client`], its config and reads, the relayer, the deployment and HyperEVM
+//!   reads.
+//! - [`markets`]: the trading state and the relayer's protocol figures.
+//! - [`account`]: the live account, the session key, storage and the wallet.
 //! - [`trade`]: intents, signatures, the venue's integer math and the writes.
 //! - [`transfer`]: deposits from Hyperliquid.
 //! - [`live`]: the account stream's event parser.
@@ -18,5 +19,8 @@ pub mod markets;
 pub mod trade;
 pub mod transfer;
 pub mod utils;
+
+#[cfg(test)]
+pub(crate) mod test_support;
 
 pub use client::{Client, Config, Error};

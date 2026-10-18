@@ -1,18 +1,18 @@
 //! Deposits from the wallet's Hyperliquid balance to its deposit address, a per-wallet CREATE2
-//! proxy whose USDC the relayer's sweeper credits to the venue within a few blocks. Make one
-//! deposit at a time, as a second in the same window can hide the first from the sweep.
+//! proxy whose USDC the relayer's sweeper credits to the venue within a few blocks. The address
+//! is registered with the relayer and checked against the one derived on chain, then each
+//! Hyperliquid send is signed by the wallet and posted once. Make one deposit at a time, as a
+//! second in the same window can hide the first from the sweep.
 
+use df_hyperliquid_core::account::verify;
+use df_hyperliquid_core::client::evm::precompiles::core_user_exists;
+use df_hyperliquid_core::client::{ExchangeResponse, Http, Network, Request};
+use df_hyperliquid_core::transfer::{Amount, SPOT_DEX, SendAsset, SpotSend, UsdClassTransfer, UserAction};
 use df_hyperliquid_core::utils::{Address, Dec};
 
-use df_hyperliquid_core::client::{ExchangeResponse, Http, Network, Request};
-
-use crate::client::relayer::Call;
-use df_hyperliquid_core::client::evm::Rpc;
-use df_hyperliquid_core::transfer::{Amount, SPOT_DEX, SendAsset, SpotSend, UsdClassTransfer};
-use df_hyperliquid_core::utils::sign::UserAction;
-
 use crate::account::wallet::{Purpose, SignRequest, Wallet};
-use crate::client::{Client, Error};
+use crate::client::{Call, Client, Error};
+use crate::utils::wire::{BadWire, address_of, field, parse};
 
 /// The fee that opens a new HyperCore account: 1 USDC, in 6-decimal units.
 pub const ACTIVATION_FEE_USDC: u64 = 1_000_000;
@@ -73,27 +73,25 @@ impl Send {
             Send::Spot(_) | Send::Pooled(_) => Purpose::Deposit,
         }
     }
-
-    /// What the send does, to show before the wallet asks.
-    #[must_use]
-    pub const fn describe(&self) -> &'static str {
-        match self {
-            Send::ToSpot(_) => "move USDC from perps to spot",
-            Send::Spot(_) | Send::Pooled(_) => "send USDC to the deposit address",
-        }
-    }
 }
 
+/// `usdc` (6 decimals) as the amount a Hyperliquid send signs.
 fn amount(usdc: u64) -> Result<Amount, Error> {
     let value = Dec::new(i128::from(usdc), 6).ok_or_else(|| Error::Decode("amount out of range".into()))?;
     Amount::cut(value, 6).map_err(|e| Error::Invalid(e.to_string()))
+}
+
+/// The deposit address in the relayer's answer to `POST /funding/deposits/check`.
+fn checked_address(text: &str) -> Result<Address, BadWire> {
+    let json = parse(text, "deposit_check")?;
+    address_of(field(&json, "proxy")?, "proxy")
 }
 
 impl<H: Http + Clone> Client<H> {
     /// Registers `owner`'s deposit address with the relayer's sweeper and returns it.
     pub async fn register_deposit(&self, owner: Address) -> Result<Address, Error> {
         let text = self.relayer().send(&Call::deposit_check(owner)).await?;
-        Ok(crate::markets::stats::deposit_address(&text)?)
+        Ok(checked_address(&text)?)
     }
 
     /// Plans a deposit of `usdc` (6 decimals, at least 10 USDC) from `source`, after registering
@@ -107,11 +105,7 @@ impl<H: Http + Clone> Client<H> {
         if to != self.deposit_address(owner).await? {
             return Err(Error::Decode("the relayer named a deposit address the factory does not derive".into()));
         }
-        let rpc = Rpc::new(self.http().clone(), self.config().rpc.clone());
-        let exists = rpc
-            .read(&df_hyperliquid_core::client::evm::precompiles::core_user_exists(to))
-            .await
-            .map_err(Error::Precompile)?;
+        let exists = self.rpc().read(&core_user_exists(to)).await.map_err(Error::Precompile)?;
         let opens_account = !exists;
         let nonce = self.now_ms();
         let network = Network::Mainnet;
@@ -146,8 +140,7 @@ impl<H: Http + Clone> Client<H> {
                 digest: action.digest(network),
             };
             let signature = wallet.sign(&request).await?;
-            df_hyperliquid_core::account::verify(&request.digest, &signature, owner)
-                .map_err(|e| Error::Signature(e.to_string()))?;
+            verify(&request.digest, &signature, owner).map_err(|e| Error::Signature(e.to_string()))?;
             let answer = self
                 .http()
                 .send(Request::post_json(self.config().exchange.clone(), action.body(&signature, network)))
@@ -160,3 +153,7 @@ impl<H: Http + Clone> Client<H> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "tests/deposit.rs"]
+mod tests;

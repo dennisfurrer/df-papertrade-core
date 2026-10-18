@@ -15,13 +15,22 @@ Rust SDK for [Papertrade](https://papertrade.xyz), gasless 1000x perps on HyperE
 
 ```text
 df-papertrade-core
-├── client        relayer, deployment, HyperEVM reads, Client
-├── markets       trading state, protocol summary, payout queue, recent trades
-├── account       live account, session keys, key and nonce storage, wallet
-├── trade         intents and signatures, bust and PnL math, open, close, cancel
-├── transfer      deposits from Hyperliquid
-├── live          account stream parser
-└── utils         units, intent nonces, JSON readers
+├── client          Client, config and reads, HyperEVM reads, deployment
+│   └── relayer     requests as values, answers, the sender
+├── markets
+│   ├── trading     trading state, instruments, the relayer's intake
+│   └── stats       protocol summary, volumes, payout queue, recent trades, queue rank
+├── account         key and nonce storage, wallet
+│   ├── state       live account from the stream
+│   ├── session     stored session key, whether it signs, enable and register
+│   └── session_key the key that signs opens, closes and cancels
+├── trade
+│   ├── intent      intents, EIP-712, signatures, intent ids
+│   ├── math        bust prices, PnL after impact and fees, open limits, PAPER mint
+│   └── writes      open, close, cancel, withdraw, stake, unstake, claim
+├── transfer        deposits from Hyperliquid
+├── live            account stream parser
+└── utils           units, intent nonces, JSON readers
 ```
 
 ```mermaid
@@ -36,16 +45,20 @@ flowchart TB
 
     subgraph hl ["df-hyperliquid-core"]
         direction LR
-        transfer["<b>transfer</b>"]
+        http["<b>client::http</b>"]
         evm["<b>client::evm</b>"]
-        utils["<b>utils</b>"]
+        send["<b>transfer::send</b>"]
+        keys["<b>account::keys</b>"]
+        sign["<b>utils::sign</b>"]
     end
 
     app --> domains
     domains --> client
-    domains --> transfer
+    client --> http
     client --> evm
-    domains --> utils
+    domains --> send
+    domains --> keys
+    domains --> sign
 ```
 
 ## Examples

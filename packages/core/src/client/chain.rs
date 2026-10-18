@@ -1,8 +1,10 @@
-//! Contract reads on HyperEVM: deposit address, BBO, win fee and staking rewards.
-//! Each is a pure `eth_call` ([`Read`]) run at `latest`, the only block mainnet's RPC serves.
+//! Contract reads on HyperEVM: the deposit address, the win fee and staking rewards. Each is a
+//! pure `eth_call` ([`Read`]) run at `latest`, the only block mainnet's RPC serves. The book's
+//! BBO is HyperCore's own precompile, read through
+//! [`df_hyperliquid_core::client::evm::precompiles::bbo`].
 
-use df_hyperliquid_core::client::evm::rpc::BlockTag;
-use df_hyperliquid_core::client::evm::{AbiError, CallRequest, Function, Rpc, Token};
+use df_hyperliquid_core::client::Http;
+use df_hyperliquid_core::client::evm::{AbiError, BlockTag, CallRequest, Function, Rpc, RpcError, Token};
 use df_hyperliquid_core::utils::Address;
 
 use crate::client::deployment::{DEPOSIT_PROXY_FACTORY, EXCHANGE, PAPER_STAKING};
@@ -25,7 +27,7 @@ impl<T> std::fmt::Debug for Read<T> {
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum ReadError {
     #[error(transparent)]
-    Rpc(#[from] df_hyperliquid_core::client::evm::RpcError),
+    Rpc(#[from] RpcError),
     #[error("the answer does not fit the function's outputs: {0}")]
     Abi(#[from] AbiError),
     #[error("the answer is not the value the function returns")]
@@ -51,7 +53,7 @@ impl<T> Read<T> {
     }
 
     /// Runs the read at the latest block.
-    pub async fn run<H: df_hyperliquid_core::client::Http>(&self, rpc: &Rpc<H>) -> Result<T, ReadError> {
+    pub async fn run<H: Http>(&self, rpc: &Rpc<H>) -> Result<T, ReadError> {
         let answer = rpc.call(&self.request(), BlockTag::Latest).await?;
         self.decode(&answer)
     }
@@ -81,15 +83,6 @@ pub fn pending_reward(wallet: Address) -> Result<Read<u128>, AbiError> {
         &[Token::address(wallet)],
         |tokens| tokens.first()?.as_u128(),
     )
-}
-
-/// Hyperliquid's best bid and ask for perp `asset_index`, raw at the market's price scale.
-/// The oracle prices from it.
-#[must_use]
-pub fn bbo(
-    asset_index: u32,
-) -> df_hyperliquid_core::client::evm::Read<df_hyperliquid_core::client::evm::precompiles::Bbo> {
-    df_hyperliquid_core::client::evm::precompiles::bbo(asset_index)
 }
 
 #[cfg(test)]

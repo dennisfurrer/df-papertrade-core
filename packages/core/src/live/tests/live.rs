@@ -1,6 +1,8 @@
-use super::*;
+//! The parser over a busy wallet's five-minute capture, in chunks of any size, and over the
+//! format's corners: comments, CRLF and data split across lines.
 
-const STREAM: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/live_stream.txt"));
+use super::*;
+use crate::test_support::STREAM;
 
 #[test]
 fn the_live_stream_splits_into_its_events() {

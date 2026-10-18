@@ -4,9 +4,8 @@
 
 use std::future::Future;
 
-use df_hyperliquid_core::utils::Address;
-
 use df_hyperliquid_core::account::{LocalKey, Signature};
+use df_hyperliquid_core::utils::Address;
 
 /// What a signature is for, so a confirmation can show it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,22 +23,6 @@ pub enum Purpose {
     DepositToSpot,
     /// A deposit's send to the wallet's deposit address.
     Deposit,
-}
-
-impl Purpose {
-    /// A one-line description to show before the wallet asks.
-    #[must_use]
-    pub const fn describe(self) -> &'static str {
-        match self {
-            Purpose::RegisterSessionKey => "register a session key that trades for 30 days and cannot withdraw",
-            Purpose::Withdraw => "withdraw USDC to the wallet's own HyperCore spot account",
-            Purpose::Stake => "stake PAPER",
-            Purpose::Unstake => "unstake PAPER",
-            Purpose::Claim => "claim staking rewards into the venue balance",
-            Purpose::DepositToSpot => "move USDC from perps to spot, for a deposit",
-            Purpose::Deposit => "send USDC to the deposit address",
-        }
-    }
 }
 
 /// One signature asked of the wallet.

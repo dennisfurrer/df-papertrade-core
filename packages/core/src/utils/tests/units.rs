@@ -1,3 +1,5 @@
+//! Price scales, raw prices, the oracle's mid and collateral units.
+
 use df_hyperliquid_core::utils::Dec;
 
 use super::*;
