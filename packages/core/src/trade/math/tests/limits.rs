@@ -9,8 +9,6 @@ use crate::test_support::{TRADING, WAD};
 const MARK: u128 = 829_105;
 /// What the recorded BTC long side has left under its cap at [`MARK`], in collateral units.
 const LONG_HEADROOM: u128 = 4_388_507_917_257_093_181_991_861;
-/// The same with no cap on the side: the net open-interest limit alone.
-const LONG_NET_HEADROOM: u128 = 13_086_093_612_055_315_137_689_222;
 
 const fn dollars(n: u128) -> u128 {
     n * WAD
@@ -21,9 +19,8 @@ fn an_open_is_refused_by_the_first_check_it_fails() {
     let state = TradingState::parse(TRADING).unwrap();
     let btc = &state.instruments[0];
     let paused = TradingState { trading_paused: true, ..state.clone() };
-    let intake = state.intake.clone().unwrap();
-    let no_opens =
-        TradingState { intake: Some(Intake { paused: vec!["openPosition".to_owned()], ..intake }), ..state.clone() };
+    let paused_opens = Intake { revision: 1, paper_stake_minimum: 0, paused: vec!["openPosition".to_owned()] };
+    let no_opens = TradingState { intake: Some(paused_opens), ..state.clone() };
     let closed = Instrument { paused: true, ..btc.clone() };
     // (name, state, instrument, margin in dollars, leverage, mark, available, queue room, result)
     let cases = [
@@ -83,89 +80,23 @@ fn an_open_is_refused_by_the_first_check_it_fails() {
 fn a_new_position_may_commit_up_to_its_tightest_limit() {
     let state = TradingState::parse(TRADING).unwrap();
     let btc = &state.instruments[0];
-    let without_net = TradingState { intake: None, ..state.clone() };
     let uncapped = Instrument { long_cap: NO_CAP, ..btc.clone() };
     let plenty = dollars(1_000_000);
-    // (name, state, instrument, leverage, mark, available, queue limited, limit, maximum, headroom)
+    let (open_interest, market, collateral, queue) =
+        (Limit::OpenInterest, Limit::MarketMaxSize, Limit::Collateral, Limit::QueueLiquidity);
+    let capped = Some(LONG_HEADROOM);
+    // (name, instrument, leverage, mark, available, queue limited, limit, maximum, headroom)
     let cases = [
-        (
-            "the side's cap",
-            &state,
-            btc,
-            1000,
-            Some(MARK),
-            plenty,
-            false,
-            Limit::OpenInterest,
-            LONG_HEADROOM / 1000,
-            Some(LONG_HEADROOM),
-        ),
-        (
-            "the cap alone",
-            &without_net,
-            btc,
-            1000,
-            Some(MARK),
-            plenty,
-            false,
-            Limit::OpenInterest,
-            LONG_HEADROOM / 1000,
-            Some(LONG_HEADROOM),
-        ),
-        (
-            "the net limit alone",
-            &state,
-            &uncapped,
-            1000,
-            Some(MARK),
-            plenty,
-            false,
-            Limit::MarketMaxSize,
-            dollars(10_000),
-            Some(LONG_NET_HEADROOM),
-        ),
-        (
-            "neither",
-            &without_net,
-            &uncapped,
-            1000,
-            Some(MARK),
-            plenty,
-            false,
-            Limit::MarketMaxSize,
-            dollars(10_000),
-            None,
-        ),
-        ("no mark", &state, btc, 1000, None, plenty, false, Limit::MarketMaxSize, dollars(10_000), None),
-        ("a zero mark", &state, btc, 1000, Some(0), plenty, false, Limit::MarketMaxSize, dollars(10_000), None),
-        (
-            "the balance",
-            &state,
-            btc,
-            10,
-            Some(MARK),
-            dollars(50),
-            false,
-            Limit::Collateral,
-            dollars(50),
-            Some(LONG_HEADROOM),
-        ),
-        (
-            "the queue",
-            &state,
-            btc,
-            10,
-            Some(MARK),
-            dollars(50),
-            true,
-            Limit::QueueLiquidity,
-            dollars(50),
-            Some(LONG_HEADROOM),
-        ),
-        ("past the market's leverage", &state, btc, 1001, Some(MARK), plenty, false, Limit::Leverage, 0, None),
+        ("the side's cap", btc, 1000, Some(MARK), plenty, false, open_interest, LONG_HEADROOM / 1000, capped),
+        ("no cap on the side", &uncapped, 1000, Some(MARK), plenty, false, market, dollars(10_000), None),
+        ("no mark", btc, 1000, None, plenty, false, market, dollars(10_000), None),
+        ("a zero mark", btc, 1000, Some(0), plenty, false, market, dollars(10_000), None),
+        ("the balance", btc, 10, Some(MARK), dollars(50), false, collateral, dollars(50), capped),
+        ("the queue", btc, 10, Some(MARK), dollars(50), true, queue, dollars(50), capped),
+        ("past the market's leverage", btc, 1001, Some(MARK), plenty, false, Limit::Leverage, 0, None),
     ];
-    for (name, state, instrument, leverage, mark, available, queued, limit, maximum, headroom) in cases {
-        let got = open_limits(state, instrument, true, leverage, mark, available, queued);
+    for (name, instrument, leverage, mark, available, queued, limit, maximum, headroom) in cases {
+        let got = open_limits(instrument, true, leverage, mark, available, queued);
         assert_eq!(got, OpenLimits { maximum, limit, headroom }, "{name}");
     }
 }

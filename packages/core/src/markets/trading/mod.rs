@@ -24,7 +24,7 @@ pub struct TradingState {
     /// PaperStaking's reward accumulator, scaled by 10^27.
     pub acc_reward_per_share: u128,
     pub instruments: Vec<Instrument>,
-    /// Absent from older relayers, in which case every action is accepted.
+    /// `intakeControls`. With none sent, every action is accepted.
     pub intake: Option<Intake>,
 }
 
@@ -54,7 +54,7 @@ impl TradingState {
             }
             instruments.push(instrument);
         }
-        let intake = match json.get("intake") {
+        let intake = match json.get("intakeControls") {
             None | Some(Json::Null) => None,
             Some(row) => Some(Intake::read(row)?),
         };

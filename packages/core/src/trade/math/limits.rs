@@ -32,7 +32,6 @@ pub struct OpenLimits {
 /// capped to queue liquidity when `queue_limited` is set.
 #[must_use]
 pub fn open_limits(
-    state: &TradingState,
     instrument: &Instrument,
     is_long: bool,
     leverage: u32,
@@ -58,31 +57,16 @@ pub fn open_limits(
     if instrument.max_position_notional > 0 {
         tighten(instrument.max_position_notional / u128::from(leverage), Limit::MarketMaxSize, &mut limits);
     }
-    let (own, other, cap) = if is_long {
-        (instrument.long_oi, instrument.short_oi, instrument.long_cap)
-    } else {
-        (instrument.short_oi, instrument.long_oi, instrument.short_cap)
-    };
-    if let Some(mark) = mark.filter(|mark| *mark > 0) {
-        let net = state
-            .intake
-            .as_ref()
-            .map(|intake| intake.maximum_net_open_interest)
-            .filter(|net| *net > 0)
-            .and_then(|net| mul_div(net, u128::from(instrument.price_scale), mark))
-            .map(|net| other.saturating_add(net));
-        let bound = match net {
-            Some(net) if cap > 0 && cap != NO_CAP => Some(cap.min(net)),
-            Some(net) => Some(net),
-            None if cap > 0 && cap != NO_CAP => Some(cap),
-            None => None,
-        };
-        if let Some(bound) = bound {
-            let room = bound.saturating_sub(own);
-            if let Some(headroom) = mul_div(room, mark, u128::from(instrument.price_scale)) {
-                limits.headroom = Some(headroom);
-                tighten(headroom / u128::from(leverage), Limit::OpenInterest, &mut limits);
-            }
+    let (own, cap) =
+        if is_long { (instrument.long_oi, instrument.long_cap) } else { (instrument.short_oi, instrument.short_cap) };
+    if let Some(mark) = mark.filter(|mark| *mark > 0)
+        && cap > 0
+        && cap != NO_CAP
+    {
+        let room = cap.saturating_sub(own);
+        if let Some(headroom) = mul_div(room, mark, u128::from(instrument.price_scale)) {
+            limits.headroom = Some(headroom);
+            tighten(headroom / u128::from(leverage), Limit::OpenInterest, &mut limits);
         }
     }
     limits
@@ -99,7 +83,7 @@ pub enum OpenRefusal {
     IntakePaused,
     #[error("the margin is under the venue's minimum")]
     BelowMinimumMargin,
-    #[error("margin × leverage is under the venue's minimum position")]
+    #[error("margin times leverage is under the venue's minimum position")]
     BelowMinimumNotional,
     #[error("the position exceeds the market limit")]
     AboveMaximumPosition,
@@ -154,7 +138,7 @@ pub fn check_open(
     if debt_room.is_some_and(|room| margin > room) {
         return Err(OpenRefusal::QueueLiquidity);
     }
-    let limits = open_limits(state, instrument, is_long, leverage, mark, u128::MAX, false);
+    let limits = open_limits(instrument, is_long, leverage, mark, u128::MAX, false);
     if limits.limit == Limit::OpenInterest && margin > limits.maximum {
         return Err(OpenRefusal::OpenInterest);
     }

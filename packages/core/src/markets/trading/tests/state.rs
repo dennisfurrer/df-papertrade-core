@@ -1,14 +1,21 @@
-//! The trading state as the relayer answered it on 2026-10-13, with BTC and ETH listed, and the
-//! same answer edited where the schema, the switches or the intake do not read.
+//! The trading state as the relayer answered it on 2026-10-13, with BTC and ETH listed, its intake
+//! controls as answered on 2026-10-18 (`trading_mainnet.json`), and the same answers edited where
+//! the schema, the switches or the intake do not read.
 
 use serde_json::{Value, json};
 
 use super::*;
 use crate::test_support::TRADING;
 
+const MAINNET: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/trading_mainnet.json"));
+
 /// The recorded trading state with `edit` made to it.
 fn edited(edit: impl Fn(&mut Value)) -> String {
-    let mut json: Value = serde_json::from_str(TRADING).unwrap();
+    edited_from(TRADING, edit)
+}
+
+fn edited_from(text: &str, edit: impl Fn(&mut Value)) -> String {
+    let mut json: Value = serde_json::from_str(text).unwrap();
     edit(&mut json);
     json.to_string()
 }
@@ -32,27 +39,29 @@ fn the_live_trading_state_reads() {
     assert_eq!(btc.max_position_notional, 10_000_000_000_000_000_000_000_000, "$10M");
     assert_eq!(state.instrument(1).unwrap().position_multiplier, 483_979_000_000_000_000_000);
     assert_eq!((state.instrument(2), state.by_symbol("SOL")), (None, None));
-    let intake = state.intake.as_ref().unwrap();
-    assert!(intake.paused.is_empty() && state.accepts("openPosition"));
-    assert_eq!(intake.revision, 1_791_841_985_919_872);
-    assert_eq!(intake.paper_stake_minimum, 1_000_000_000_000_000_000_000, "1,000 PAPER");
-    assert_eq!(intake.maximum_net_open_interest, 40_000_000_000_000_000_000_000_000, "$40M");
 }
 
+/// `intakeControls`: the revision, the least PAPER a stake moves, and the actions paused.
 #[test]
-fn a_paused_action_is_not_taken() {
-    let text = TRADING.replace(",[]]}", ",[\"openPosition\"]]}");
-    let state = TradingState::parse(&text).unwrap();
+fn the_intake_controls_say_which_actions_are_taken() {
+    let state = TradingState::parse(MAINNET).unwrap();
+    let intake = state.intake.as_ref().unwrap();
+    assert_eq!(intake.revision, 1_792_181_740_343_271);
+    assert_eq!(intake.paper_stake_minimum, 1_000_000_000_000_000_000_000, "1,000 PAPER");
+    assert!(intake.paused.is_empty() && state.accepts("openPosition"));
+    let paused = edited_from(MAINNET, |json| json["intakeControls"][2] = json!(["openPosition"]));
+    let state = TradingState::parse(&paused).unwrap();
     assert!(!state.accepts("openPosition") && state.accepts("closePositions"));
 }
 
-/// Without an intake, from an older relayer, every action is taken.
+/// Without intake controls every action is taken, as before the relayer sent any.
 #[test]
 fn a_state_with_no_intake_takes_every_action() {
     for text in [
-        edited(|json| json["intake"] = Value::Null),
-        edited(|json| {
-            json.as_object_mut().unwrap().remove("intake");
+        TRADING.to_owned(),
+        edited_from(MAINNET, |json| json["intakeControls"] = Value::Null),
+        edited_from(MAINNET, |json| {
+            json.as_object_mut().unwrap().remove("intakeControls");
         }),
     ] {
         let state = TradingState::parse(&text).unwrap();
@@ -71,12 +80,11 @@ fn a_state_that_does_not_read_names_what_failed() {
         (json!({"minimumTradeSizeRaw": "10.5"}), "minimum_trade_size"),
         (json!({"minimumOpenNotionalRaw": null}), "minimum_open_notional"),
         (json!({"accRewardPerShareRaw": ""}), "reward_accumulator"),
-        (json!({"intake": [1, "1000", "40"]}), "trading_intake"),
-        (json!({"intake": [1, "1000", "40", "openPosition"]}), "trading_intake"),
-        (json!({"intake": [1, "1000", "40", [7]]}), "trading_intake_action"),
-        (json!({"intake": ["r1", "1000", "40", []]}), "trading_intake_revision"),
-        (json!({"intake": [1, "-1", "40", []]}), "trading_paper_stake_minimum"),
-        (json!({"intake": [1, "1000", "x", []]}), "trading_net_open_interest"),
+        (json!({"intakeControls": [1, "1000"]}), "trading_intake"),
+        (json!({"intakeControls": [1, "1000", "openPosition"]}), "trading_intake"),
+        (json!({"intakeControls": [1, "1000", [7]]}), "trading_intake_action"),
+        (json!({"intakeControls": ["r1", "1000", []]}), "trading_intake_revision"),
+        (json!({"intakeControls": [1, "-1", []]}), "trading_paper_stake_minimum"),
     ] {
         let text = edited(|json| {
             for (key, value) in edit.as_object().unwrap() {

@@ -85,14 +85,14 @@ async fn an_open_the_venue_would_refuse_is_never_signed() {
 
 #[tokio::test]
 async fn an_open_on_a_venue_that_has_paused_is_never_signed() {
-    let trading = fixture("trading.json");
+    let trading = fixture("trading_mainnet.json");
     let cases = [
         (
             "trading paused",
             trading.replace("\"tradingPaused\":false", "\"tradingPaused\":true"),
             OpenRefusal::TradingPaused,
         ),
-        ("opens paused at intake", trading.replace("[]]", "[\"openPosition\"]]"), OpenRefusal::IntakePaused),
+        ("opens paused at intake", trading.replace(",[]]", ",[\"openPosition\"]]"), OpenRefusal::IntakePaused),
     ];
     for (name, state, expected) in cases {
         assert_ne!(state, trading, "{name}: the recording changed");
