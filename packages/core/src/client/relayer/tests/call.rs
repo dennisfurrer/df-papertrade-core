@@ -21,7 +21,7 @@ fn each_call_has_its_method_path_and_body() {
         (Call::queue_summary(), Method::Get, "/query/protocol/queue-summary".to_owned(), None),
         (Call::recent_trades(), Method::Get, "/query/protocol/trades/recent".to_owned(), None),
         (Call::queue_rank(wallet), Method::Get, format!("/queue-rank/accounts/{WALLET}"), None),
-        (Call::health(), Method::Get, "/relayer/health".to_owned(), None),
+        (Call::health(), Method::Get, "/query/health".to_owned(), None),
         (
             Call::deposit_check(wallet),
             Method::Post,

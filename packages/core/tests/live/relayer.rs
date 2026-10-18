@@ -1,9 +1,10 @@
-//! The relayer's reads, from mainnet: the trading state, the protocol's figures, the latest trades
-//! and a busy wallet's place in the queue, each held against its recording right after it is read.
+//! The relayer's reads, from mainnet: the trading state, the protocol's figures, the latest trades,
+//! a busy wallet's place in the queue and the venue's health, each held against its recording
+//! right after it is read.
 //! Only `GET`s: a deposit check registers the wallet, so it is never asked.
 
+use df_papertrade_core::client::Call;
 use df_papertrade_core::client::deployment::{GENESIS_MS, LISTINGS};
-use df_papertrade_core::client::{Call, RelayerError};
 use df_papertrade_core::utils::units;
 
 use crate::tap::{reader, same_shape};
@@ -15,7 +16,7 @@ use crate::tap::{reader, same_shape};
 async fn the_trading_state_lists_its_markets() {
     let client = reader();
     let state = client.trading_state().await.unwrap();
-    assert!(!state.instruments.is_empty());
+    assert!(!state.instruments.is_empty() && state.intake.is_some(), "{state:?}");
     same_shape(&client, "trading_mainnet.json");
     for listing in LISTINGS {
         let instrument = state.instrument(listing.id).unwrap();
@@ -83,12 +84,15 @@ async fn a_busy_wallet_s_place_in_the_queue_reads() {
     assert!(rank.entries.iter().all(|(_, position)| *position > 0), "{rank:?}");
 }
 
-/// `GET /relayer/health` is not served: the host answers its own 404 page. The query service's
-/// `GET /query/health` answers instead, which no call names.
 #[tokio::test]
 #[ignore = "mainnet"]
-async fn the_relayer_s_health_path_is_not_served() {
+async fn the_venue_says_it_is_up_on_hyperevm() {
     let client = reader();
-    let health = client.relayer().send(&Call::health()).await;
-    assert_eq!(health, Err(RelayerError::Refused { status: 404, code: None, message: None }));
+    let health: serde_json::Value =
+        serde_json::from_str(&client.relayer().send(&Call::health()).await.unwrap()).unwrap();
+    assert_eq!(
+        (&health["status"], &health["chainId"]),
+        (&serde_json::json!("ok"), &serde_json::json!(999)),
+        "{health}"
+    );
 }

@@ -73,9 +73,10 @@ impl Call {
         Call { method: Method::Post, path: "/funding/deposits/check".to_owned(), body: Some(body) }
     }
 
+    /// Whether the venue's query service is up: `{"status":"ok","chainId":999,..}`.
     #[must_use]
     pub fn health() -> Call {
-        Call::get("/relayer/health")
+        Call::get("/query/health")
     }
 
     /// The full request against `base`, such as [`ORIGIN`](crate::client::deployment::ORIGIN)

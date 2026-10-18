@@ -18,7 +18,7 @@ use crate::support::{NOW, client, owner};
 const SESSION_KEY: &str = "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318";
 const EXPIRED: &str =
     r#"{"ok":false,"error":"deadline_expired","message":"This request expired before it was accepted."}"#;
-/// What the relayer's host answers a path it does not serve, as `GET /relayer/health` gets today.
+/// What the relayer's host answers a path it does not serve.
 const NOT_FOUND: &str = "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n</body>\r\n</html>";
 
 fn refused(status: u16, code: Option<&str>, message: Option<&str>) -> RelayerError {
