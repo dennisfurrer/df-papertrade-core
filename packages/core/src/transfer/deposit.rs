@@ -6,7 +6,7 @@
 
 use df_hyperliquid_core::account::verify;
 use df_hyperliquid_core::client::evm::precompiles::core_user_exists;
-use df_hyperliquid_core::client::{ExchangeResponse, Http, Network, Request};
+use df_hyperliquid_core::client::{ExchangeResponse, Http, Network, Request, TransportError};
 use df_hyperliquid_core::transfer::{Amount, SPOT_DEX, SendAsset, SpotSend, UsdClassTransfer, UserAction};
 use df_hyperliquid_core::utils::{Address, Dec};
 
@@ -128,7 +128,8 @@ impl<H: Http + Clone> Client<H> {
     }
 
     /// Has the wallet sign each send in order and posts it to Hyperliquid once. A failed send
-    /// leaves the later ones unsent.
+    /// leaves the later ones unsent; an HTTP status other than 2xx is
+    /// [`TransportError::Status`].
     pub async fn send_deposit(&self, wallet: &impl Wallet, deposit: &Deposit) -> Result<(), Error> {
         let owner = wallet.address();
         let network = Network::Mainnet;
@@ -145,6 +146,9 @@ impl<H: Http + Clone> Client<H> {
                 .http()
                 .send(Request::post_json(self.config().exchange.clone(), action.body(&signature, network)))
                 .await?;
+            if !answer.is_success() {
+                return Err(TransportError::Status { status: answer.status, body: answer.text() }.into());
+            }
             match ExchangeResponse::parse(&answer.text()).map_err(|e| Error::Decode(e.to_string()))? {
                 ExchangeResponse::Ok(_) => {}
                 ExchangeResponse::Err(why) => return Err(Error::Exchange(why)),

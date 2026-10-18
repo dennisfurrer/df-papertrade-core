@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use std::future::{Future, ready};
 
 use df_hyperliquid_core::account::{LocalKey, Signature, recover};
-use df_hyperliquid_core::client::Network;
+use df_hyperliquid_core::client::{Network, TransportError};
 use df_hyperliquid_core::utils::{Address, hex};
 use df_papertrade_core::Error;
 use df_papertrade_core::account::{Purpose, SignRequest, Wallet, WalletError};
@@ -228,18 +228,17 @@ async fn a_send_hyperliquid_refuses_or_fails_leaves_the_rest_unsent() {
     let refusing = agreed(true).exchange(r#"{"status":"err","response":"Insufficient balance for withdrawal"}"#);
     let failing = agreed(true).exchange(TAKEN).status("/exchange", 502, "bad gateway");
 
-    for (venue, stopped) in
-        [(refusing, Some(Error::Exchange("Insufficient balance for withdrawal".to_owned()))), (failing, None)]
-    {
+    let gateway = TransportError::Status { status: 502, body: "bad gateway".to_owned() };
+    for (venue, stopped) in [
+        (refusing, Error::Exchange("Insufficient balance for withdrawal".to_owned())),
+        (failing, Error::Transport(gateway)),
+    ] {
         let client = client(&venue);
         let deposit = client.plan_deposit(owner(), 25_000_000, Source::Perp, Mode::Standard).await.unwrap();
 
         let refused = client.send_deposit(&wallet(), &deposit).await.unwrap_err();
 
-        match stopped {
-            Some(error) => assert_eq!(refused, error),
-            None => assert!(matches!(refused, Error::Decode(_)), "an answer that is not Hyperliquid's: {refused:?}"),
-        }
+        assert_eq!(refused, stopped);
         assert_eq!(sent(&venue, &deposit), pairs(&[("usdClassTransfer", "25")]), "the spot send was never made");
     }
 }
