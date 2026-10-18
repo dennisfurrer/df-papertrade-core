@@ -2,7 +2,6 @@
 //! session key and account it drives.
 
 use df_hyperliquid_core::account::LocalKey;
-use df_hyperliquid_core::client::Request;
 use df_hyperliquid_core::utils::{Address, hex};
 
 use super::{NOW_MS, SESSION_SECRET, WALLET_KEY, Wire, block_on};
@@ -97,8 +96,4 @@ pub(crate) fn accepted(id: [u8; 32], action: &str) -> String {
         r#"{{"intentId":"{}","action":"{action}","state":"queued","queueRevision":"2"}}"#,
         hex::encode_prefixed(&id)
     )
-}
-
-pub(crate) fn body(request: &Request) -> serde_json::Value {
-    serde_json::from_slice(&request.body).unwrap()
 }

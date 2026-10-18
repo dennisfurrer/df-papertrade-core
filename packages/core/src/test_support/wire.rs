@@ -29,10 +29,6 @@ impl Wire {
     pub(crate) fn sent(&self) -> Vec<Request> {
         self.0.seen.borrow().clone()
     }
-
-    pub(crate) fn posts_to(&self, url: &str) -> Vec<Request> {
-        self.sent().into_iter().filter(|r| r.method == Method::Post && r.url.starts_with(url)).collect()
-    }
 }
 
 impl Http for Wire {

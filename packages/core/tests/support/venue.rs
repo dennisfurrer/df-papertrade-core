@@ -121,7 +121,7 @@ impl Venue {
     }
 
     /// Answers the next request whose URL ends in `path` with HTTP `status` and `body`, in place
-    /// of the venue's own answer. The request is still taken.
+    /// of the venue's own answer, which it then needs none of. The request is still taken.
     #[must_use]
     pub fn status(self, path: &str, status: u16, body: &str) -> Venue {
         self.0.failures.borrow_mut().push_back((path.to_owned(), status, body.to_owned()));
@@ -175,13 +175,14 @@ impl Venue {
             })
         });
         let failure = self.failure(&request.url);
+        let failing = failure.is_some();
         let config = &self.0.config;
         let answer = if let Some(path) = request.url.strip_prefix(config.relayer.as_str()) {
-            self.relayer(request.method, path, body)
+            self.relayer(request.method, path, body, failing)
         } else if request.url == config.rpc {
-            self.node(body.unwrap_or_else(|| panic!("a JSON-RPC call with no body")))
+            self.node(body.unwrap_or_else(|| panic!("a JSON-RPC call with no body")), failing)
         } else if request.url == config.exchange {
-            self.act(body.unwrap_or_else(|| panic!("an /exchange post with no body")))
+            self.act(body.unwrap_or_else(|| panic!("an /exchange post with no body")), failing)
         } else {
             panic!("the venue does not serve {}", request.url)
         };
@@ -197,8 +198,12 @@ impl Venue {
         failures.remove(at).map(|(_, status, body)| (status, body))
     }
 
-    fn relayer(&self, method: Method, path: &str, body: Option<Value>) -> String {
+    /// Each handler takes the request, then answers it unless a failure stands in.
+    fn relayer(&self, method: Method, path: &str, body: Option<Value>, failing: bool) -> String {
         self.0.sent.borrow_mut().push(Sent::Relayer { method, path: path.to_owned(), body });
+        if failing {
+            return String::new();
+        }
         let answer = match method {
             Method::Get => self.0.gets.borrow().iter().find(|(at, _)| at == path).map(|(_, answer)| answer.clone()),
             Method::Post => self
@@ -212,8 +217,11 @@ impl Venue {
         answer.unwrap_or_else(|| panic!("the relayer has no answer for {} {path}", word(method)))
     }
 
-    fn node(&self, call: Value) -> String {
+    fn node(&self, call: Value, failing: bool) -> String {
         self.0.sent.borrow_mut().push(Sent::Rpc(call.clone()));
+        if failing {
+            return String::new();
+        }
         let method = call["method"].as_str().unwrap_or_else(|| panic!("a JSON-RPC call with no method: {call}"));
         let to = call["params"][0]["to"].as_str().map(str::to_ascii_lowercase);
         let rpc = self.0.rpc.borrow();
@@ -223,12 +231,15 @@ impl Venue {
         answer.to_string()
     }
 
-    fn act(&self, body: Value) -> String {
+    fn act(&self, body: Value, failing: bool) -> String {
         let action = &body["action"];
         assert!(action["signatureChainId"].is_string(), "a deposit is a user-signed action: {body}");
         assert_eq!(action["hyperliquidChain"], "Mainnet", "a user-signed action for another chain: {body}");
         assert!(body["nonce"].is_u64() && body["signature"]["r"].is_string(), "unsigned: {body}");
         self.0.sent.borrow_mut().push(Sent::Exchange(body.clone()));
+        if failing {
+            return String::new();
+        }
         let answer = self.0.exchange.borrow_mut().pop_front();
         answer.unwrap_or_else(|| panic!("/exchange has no answer queued for {body}"))
     }

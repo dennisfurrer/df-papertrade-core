@@ -147,7 +147,6 @@ async fn a_cancel_is_taken_as_the_relayer_answers_it() {
 #[tokio::test]
 async fn a_submission_refused_or_answered_unreadably_is_not_taken() {
     let venue = Venue::new()
-        .post("/intents", "")
         .post("/intents", r#"{"action":"closePositions","state":"queued"}"#)
         .post("/intents", r#"{"ok":false,"error":"nonce_used"}"#)
         .status("/intents", 503, "upstream unavailable");
