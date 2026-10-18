@@ -16,10 +16,13 @@ pub struct Staking {
 impl Staking {
     /// Refuses a zero amount.
     pub fn new(user: Address, amount: u128, nonce: u128, deadline: u64) -> Result<Self, Refusal> {
-        if amount == 0 {
-            return Err(Refusal::NoAmount);
-        }
+        Staking::check(amount)?;
         Ok(Staking { user, amount, nonce, deadline })
+    }
+
+    /// What [`Staking::new`] refuses, checked before a nonce is spent.
+    pub const fn check(amount: u128) -> Result<(), Refusal> {
+        if amount == 0 { Err(Refusal::NoAmount) } else { Ok(()) }
     }
 }
 

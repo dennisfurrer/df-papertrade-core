@@ -36,6 +36,13 @@ impl Close {
         Ok(Close { user, position_ids: words, nonce, deadline })
     }
 
+    /// Refuses a list of ids, however many intents it spans, that names a position twice:
+    /// checked before a nonce is spent or a first intent sent.
+    pub fn distinct(ids: &[u128]) -> Result<(), Refusal> {
+        let repeated = ids.iter().enumerate().any(|(index, id)| ids[..index].contains(id));
+        if repeated { Err(Refusal::DuplicatePosition) } else { Ok(()) }
+    }
+
     /// The position ids as `uint256` words.
     #[must_use]
     pub fn position_ids(&self) -> &[[u8; 32]] {

@@ -141,6 +141,11 @@ async fn a_withdrawal_stake_close_or_cancel_with_nothing_to_do_is_never_signed()
             Error::Invalid("a close names a position twice".to_owned()),
         ),
         (
+            "a close naming one position in two of its intents",
+            client.close(&store, owner(), None, &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1]).await.map(drop),
+            Error::Invalid("a close names a position twice".to_owned()),
+        ),
+        (
             "a close with no key",
             client.close(&keyless, owner(), None, &[7]).await.map(drop),
             Error::NeedsKey(KeyState::Missing),
@@ -156,9 +161,8 @@ async fn a_withdrawal_stake_close_or_cancel_with_nothing_to_do_is_never_signed()
     }
     assert!(venue.sent().is_empty(), "nothing reached the relayer");
     assert!(wallet.asked().is_empty(), "nor the wallet");
-    // The withdrawal under the minimum, the close of one twice and the empty stake and unstake each
-    // took their nonce before the intent was refused.
-    assert_eq!((next(&store, Lane::Exchange).await, next(&store, Lane::Staking).await), (42, 902));
+    // Each refused before it took a nonce.
+    assert_eq!((next(&store, Lane::Exchange).await, next(&store, Lane::Staking).await), (40, 900));
     assert_eq!((next(&keyless, Lane::Exchange).await, next(&keyless, Lane::Staking).await), (40, 900));
 }
 

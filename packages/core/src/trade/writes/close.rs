@@ -23,6 +23,7 @@ impl<H: Http + Clone> Client<H> {
         if ids.is_empty() {
             return Err(Error::Invalid("no positions to close".into()));
         }
+        Close::distinct(ids)?;
         let key = self.session_key(store, owner, account).await?;
         let mut answers = Vec::new();
         for chunk in ids.chunks(MAX_CLOSE_IDS) {

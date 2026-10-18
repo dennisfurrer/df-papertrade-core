@@ -24,9 +24,12 @@ pub struct WithdrawToCore {
 impl WithdrawToCore {
     /// Refuses less than [`MIN_WITHDRAWAL_USDC`].
     pub fn new(user: Address, amount: u128, nonce: u128, deadline: u64) -> Result<Self, Refusal> {
-        if amount < MIN_WITHDRAWAL_USDC {
-            return Err(Refusal::WithdrawalTooSmall);
-        }
+        WithdrawToCore::check(amount)?;
         Ok(WithdrawToCore { user, amount, nonce, deadline })
+    }
+
+    /// What [`WithdrawToCore::new`] refuses, checked before a nonce is spent.
+    pub const fn check(amount: u128) -> Result<(), Refusal> {
+        if amount < MIN_WITHDRAWAL_USDC { Err(Refusal::WithdrawalTooSmall) } else { Ok(()) }
     }
 }

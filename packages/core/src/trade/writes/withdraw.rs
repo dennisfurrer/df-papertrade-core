@@ -25,6 +25,7 @@ impl<H: Http + Clone> Client<H> {
         {
             return Err(Error::InsufficientFunds("more than the available balance".into()));
         }
+        WithdrawToCore::check(usdc)?;
         let nonce = self.take_nonce(store, owner, Lane::Exchange).await?;
         let intent = WithdrawToCore::new(owner, usdc, nonce, deadline(self.now_ms()))?;
         let signed = self.wallet_sign(wallet, owner, Intent::WithdrawToCore(intent), Purpose::Withdraw).await?;

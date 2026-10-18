@@ -36,6 +36,7 @@ impl<H: Http + Clone> Client<H> {
     }
 
     async fn staking(&self, store: &impl Store, owner: Address, amount: u128) -> Result<Staking, Error> {
+        Staking::check(amount)?;
         let nonce = self.take_nonce(store, owner, Lane::Staking).await?;
         Ok(Staking::new(owner, amount, nonce, deadline(self.now_ms()))?)
     }
