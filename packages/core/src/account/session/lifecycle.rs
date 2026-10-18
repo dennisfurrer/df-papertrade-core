@@ -101,7 +101,3 @@ impl<H: Http + Clone> Client<H> {
         }
     }
 }
-
-#[cfg(test)]
-#[path = "tests/lifecycle.rs"]
-mod tests;

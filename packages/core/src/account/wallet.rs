@@ -72,3 +72,7 @@ impl Wallet for LocalWallet {
         std::future::ready(self.0.sign_digest(&request.digest).map_err(|e| WalletError::Failed(e.to_string())))
     }
 }
+
+#[cfg(test)]
+#[path = "tests/wallet.rs"]
+mod tests;

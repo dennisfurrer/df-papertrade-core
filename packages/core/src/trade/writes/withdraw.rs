@@ -31,7 +31,3 @@ impl<H: Http + Clone> Client<H> {
         self.submit(&signed).await
     }
 }
-
-#[cfg(test)]
-#[path = "tests/withdraw.rs"]
-mod tests;

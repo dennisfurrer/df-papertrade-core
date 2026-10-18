@@ -57,3 +57,7 @@ pub(super) fn read_outcome(row: &Json) -> Result<([u8; 32], Outcome), BadWire> {
     };
     Ok((hash_of(&f[0], "intent_outcome")?, outcome))
 }
+
+#[cfg(test)]
+#[path = "tests/closed.rs"]
+mod tests;

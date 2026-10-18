@@ -34,7 +34,3 @@ impl<H: Http + Clone> Client<H> {
         Ok(answers)
     }
 }
-
-#[cfg(test)]
-#[path = "tests/close.rs"]
-mod tests;

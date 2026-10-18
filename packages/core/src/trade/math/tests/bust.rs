@@ -51,12 +51,20 @@ fn every_captured_bust_price_is_ours() {
 }
 
 /// Papertrade's docs example: a $100 long at 100x loses its margin on a 1% drop, and busts a
-/// buffer earlier, near $99.05.
+/// buffer earlier, near $99.05. A short busts as far above.
 #[test]
 fn the_bust_sits_a_buffer_inside_the_margin() {
     let buffer = btc().bust_buffer;
-    assert_eq!(bust_price(1_000, 100, true, buffer), Some(990));
-    assert_eq!(bust_price(100_000_000, 100, true, buffer), Some(99_047_128));
-    assert_eq!(bust_price(100_000_000, 100, false, buffer), Some(100_951_920));
-    assert_eq!(bust_price(1, 0, true, buffer), None);
+    // (entry, leverage, long, bust)
+    let cases = [
+        (1_000, 100, true, Some(990)),
+        (100_000_000, 100, true, Some(99_047_128)),
+        (100_000_000, 100, false, Some(100_951_920)),
+        (100_000_000, 1, true, Some(0)),
+        (1, 0, true, None),
+        (u128::MAX, 2, false, None),
+    ];
+    for (entry, leverage, is_long, expected) in cases {
+        assert_eq!(bust_price(entry, leverage, is_long, buffer), expected, "{entry} at {leverage}x, long: {is_long}");
+    }
 }

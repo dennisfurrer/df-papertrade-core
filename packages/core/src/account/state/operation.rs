@@ -118,3 +118,7 @@ impl Operation {
         })
     }
 }
+
+#[cfg(test)]
+#[path = "tests/operation.rs"]
+mod tests;

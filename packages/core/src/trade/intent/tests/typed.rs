@@ -5,7 +5,7 @@ use df_hyperliquid_core::utils::sign::digest_of_wallet_json;
 use serde_json::Value;
 
 use super::*;
-use crate::test_support::owner;
+use crate::test_support::{owner, session_address};
 use crate::trade::intent::vectors::{address, cases, intent_of, text, vectors};
 use crate::trade::intent::{deadline, intent_id};
 
@@ -89,12 +89,43 @@ fn the_domain_and_the_signer_change_the_answer() {
 }
 
 #[test]
-fn an_intent_knows_its_place() {
+fn every_intent_knows_its_wallet_deadline_nonce_action_key_and_domain() {
     let user = owner();
-    let open = Intent::OpenPosition(OpenPosition::new(user, 1, false, 10, 2, true, 5, 9).unwrap());
-    assert_eq!((open.user(), open.deadline(), open.nonce()), (user, 9, Some(5)));
-    assert_eq!(open.domain(), EXCHANGE_DOMAIN);
+    let staking = Staking::new(user, 5, 4, 9).unwrap();
+    let register = RegisterSessionKey::new(user, session_address(), 10, 4, 9).unwrap();
+    let cases = [
+        (Intent::RegisterSessionKey(register), Some("registerSessionKey"), Key::Wallet, EXCHANGE_DOMAIN),
+        (
+            Intent::OpenPosition(OpenPosition::new(user, 1, false, 10, 2, true, 4, 9).unwrap()),
+            Some("openPosition"),
+            Key::Session,
+            EXCHANGE_DOMAIN,
+        ),
+        (Intent::Close(Close::new(user, &[1], 4, 9).unwrap()), Some("closePositions"), Key::Session, EXCHANGE_DOMAIN),
+        (
+            Intent::WithdrawToCore(WithdrawToCore::new(user, 10_000_000, 4, 9).unwrap()),
+            Some("withdrawToCore"),
+            Key::Wallet,
+            EXCHANGE_DOMAIN,
+        ),
+        (Intent::Stake(staking.clone()), Some("paperStake"), Key::Wallet, STAKING_DOMAIN),
+        (Intent::Unstake(staking), Some("paperUnstake"), Key::Wallet, STAKING_DOMAIN),
+        (Intent::Claim(Claim { user, nonce: 4, deadline: 9 }), Some("paperClaim"), Key::Wallet, STAKING_DOMAIN),
+    ];
+    for (intent, action, key, domain) in cases {
+        let name = intent.primary_type();
+        assert_eq!((intent.user(), intent.deadline(), intent.nonce()), (user, 9, Some(4)), "{name}");
+        assert_eq!((intent.action(), intent.key(), intent.domain()), (action, key, domain), "{name}");
+        assert!(intent.typed().type_signature().starts_with(&format!("{name}(")), "{name}");
+    }
     let cancel = Intent::CancelIntent(CancelIntent { user, intent_id: [1; 32], deadline: 9 });
-    assert_eq!((cancel.nonce(), cancel.action()), (None, None));
-    assert_eq!(deadline(1_791_860_400_123), 1_791_864_000);
+    assert_eq!((cancel.user(), cancel.deadline(), cancel.nonce()), (user, 9, None), "a cancel spends no nonce");
+    assert_eq!((cancel.action(), cancel.key(), cancel.domain()), (None, Key::Session, CANCEL_DOMAIN));
+}
+
+#[test]
+fn an_intent_made_now_lives_an_hour() {
+    for (now_ms, expected) in [(0, 3_600), (999, 3_600), (1_791_860_400_123, 1_791_864_000)] {
+        assert_eq!(deadline(now_ms), expected, "{now_ms}");
+    }
 }

@@ -40,7 +40,3 @@ impl<H: Http + Clone> Client<H> {
         Ok(Staking::new(owner, amount, nonce, deadline(self.now_ms()))?)
     }
 }
-
-#[cfg(test)]
-#[path = "tests/staking.rs"]
-mod tests;
