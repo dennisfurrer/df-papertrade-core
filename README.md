@@ -67,6 +67,23 @@ flowchart TB
 |---|---|
 | `cargo run -p df-papertrade-core --example papertrade_page` | Reads BTC's trading state and mid from mainnet, prints the unsigned open for a $10 long at 100x |
 
+## Tests
+
+```text
+packages/core
+├── src/**/tests       unit: venue math, intents and EIP-712, the stream parser, account state, units
+├── tests
+│   ├── mocked         whole journeys through Client against a fake relayer, node and /exchange
+│   └── live           mainnet, read only: every relayer read, the account stream, the HyperEVM views
+└── fixtures           recorded relayer, stream and node answers
+```
+
+| Command | What it runs |
+|---|---|
+| `just check` | format, lint for native and wasm, unit and mocked, docs |
+| `just live` | the live suite against mainnet, each answer held against its recording |
+| `just cover` | line coverage of everything but the live suite |
+
 ## Reference implementations
 
 - [metalliq.xyz](https://metalliq.xyz)
