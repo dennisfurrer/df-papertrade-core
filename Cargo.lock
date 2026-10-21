@@ -156,9 +156,9 @@ dependencies = [
 
 [[package]]
 name = "df-hyperliquid-core"
-version = "0.0.9-beta"
+version = "0.0.10-beta"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ebf4ae53ac23cae86a7aee617785fcabe1a6312ea29eaf82afa726149fab6d9"
+checksum = "67782f694eda6bb661ec7530232ec419a50281e3e4c2f34c809baec0e24abd0e"
 dependencies = [
  "futures-util",
  "getrandom 0.2.17",
@@ -453,6 +453,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
 
 [[package]]
+name = "hybrid-array"
+version = "0.4.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17"
+dependencies = [
+ "typenum",
+]
+
+[[package]]
 name = "hyper"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -672,6 +681,7 @@ checksum = "d8f198d1db720e4940b5a493201d199d9f24f568f8f746bd13706243a2f71598"
 dependencies = [
  "cfg-if",
  "cpufeatures 0.3.1",
+ "hybrid-array",
 ]
 
 [[package]]

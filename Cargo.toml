@@ -14,7 +14,7 @@ keywords = ["hyperliquid", "papertrade", "perps", "hyperevm", "trading"]
 categories = ["api-bindings", "cryptography::cryptocurrencies", "wasm"]
 
 [workspace.dependencies]
-df-hyperliquid-core = { version = "0.0.9-beta", default-features = false, features = ["sign"] }
+df-hyperliquid-core = { version = "0.0.10-beta", default-features = false, features = ["sign"] }
 
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
