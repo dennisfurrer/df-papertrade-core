@@ -10,7 +10,8 @@ pub struct RegisterSessionKey {
     pub user: Address,
     pub key: Address,
     pub expiry: u64,
-    /// Always the zero address.
+    /// The builder code: an approved builder's address that earns the builder fee on the key's
+    /// closes, or zero for none.
     pub fee_address: Address,
     pub nonce: u128,
     pub deadline: u64,
@@ -26,5 +27,13 @@ impl RegisterSessionKey {
             return Err(Refusal::ExpiresFirst);
         }
         Ok(RegisterSessionKey { user, key, expiry, fee_address: Address::ZERO, nonce, deadline })
+    }
+
+    /// Names `builder` as the key's builder code. The relayer refuses a builder the
+    /// BuilderRegistry does not approve.
+    #[must_use]
+    pub const fn builder(mut self, builder: Address) -> Self {
+        self.fee_address = builder;
+        self
     }
 }

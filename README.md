@@ -9,7 +9,7 @@
 
 # df-papertrade-core
 
-Rust SDK for [Papertrade](https://papertrade.xyz), gasless 1000x perps on HyperEVM: intents, relayer, live account and exact venue math, on df-hyperliquid-core.
+Rust SDK for [Papertrade](https://papertrade.xyz), gasless 1000x perps on HyperEVM: intents, relayer, live account and exact venue math, on df-hyperliquid-core. Follows contract set 2 (live since 2026-10-21), builder codes included.
 
 ## SDK
 
@@ -19,14 +19,14 @@ df-papertrade-core
 │   └── relayer     requests as values, answers, the sender
 ├── markets
 │   ├── trading     trading state, instruments, leverage bounds, the relayer's intake
-│   └── stats       protocol summary, volumes, payout queue, recent trades, queue rank
+│   └── stats       protocol summary, volumes, payout queue, recent trades, queue rank, builders
 ├── account         key and nonce storage, wallet
 │   ├── state       live account from the stream
 │   ├── session     stored session key, whether it signs, enable and register
 │   └── session_key the key that signs opens, closes and cancels
 ├── trade
 │   ├── intent      intents, EIP-712, signatures, intent ids
-│   ├── math        bust prices, PnL after impact and fees, open limits, PAPER mint
+│   ├── math        bust prices, PnL after the payout curves, impact and fees, open limits, PAPER mint
 │   └── writes      open, close, cancel, withdraw, stake, unstake, claim
 ├── transfer        deposits from Hyperliquid
 ├── live            account stream parser
@@ -60,6 +60,10 @@ flowchart TB
     domains --> keys
     domains --> sign
 ```
+
+## Builder codes
+
+A frontend the BuilderRegistry approves earns 0.5% of the PnL of winning closes made by session keys that name it. Set `Config::builder` to its address: each registration names it while the registry approves it, and none otherwise (the relayer refuses a registration that names an address it does not approve). `Client::builder_fees` and `Client::builder` read what it has earned; `chain::claim_builder_fees` is the transaction its own wallet sends to claim.
 
 ## Examples
 

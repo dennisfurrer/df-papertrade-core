@@ -55,14 +55,25 @@ impl<H: Http + Clone> Client<H> {
         Ok(record)
     }
 
-    /// Has the wallet register the stored session key (made first if none is usable) and posts
-    /// the registration to the relayer once.
+    /// The builder code a registration names now: the configured one while the BuilderRegistry
+    /// approves it, else none. A failed read names none, so registering never waits on it.
+    pub async fn builder_code(&self) -> Address {
+        let builder = self.config().builder;
+        if builder.is_zero() {
+            return builder;
+        }
+        if self.is_builder(builder).await.unwrap_or(false) { builder } else { Address::ZERO }
+    }
+
+    /// Has the wallet register the stored session key (made first if none is usable), naming the
+    /// builder code ([`Client::builder_code`]), and posts the registration to the relayer once.
     pub async fn register(&self, store: &impl Store, wallet: &impl Wallet) -> Result<SessionRecord, Error> {
         let owner = wallet.address();
         let mut record = self.new_session(store, owner).await?;
+        let builder = self.builder_code().await;
         let nonce = self.take_nonce(store, owner, Lane::Exchange).await?;
         let registration =
-            session_key::registration(owner, record.address()?, record.held_until_ms, nonce, self.now_ms())?;
+            session_key::registration(owner, record.address()?, record.held_until_ms, nonce, self.now_ms(), builder)?;
         let signed = self
             .wallet_sign(wallet, owner, Intent::RegisterSessionKey(registration), Purpose::RegisterSessionKey)
             .await?;

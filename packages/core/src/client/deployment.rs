@@ -1,5 +1,5 @@
-//! The HyperEVM mainnet deployment (chain 999): contract addresses, listed markets, the
-//! relayer origin and the three EIP-712 domains. The exchange and staking domain separators
+//! The HyperEVM mainnet deployment (chain 999), contract set 2 (live since 2026-10-21): contract
+//! addresses, listed markets, the relayer origin and the three EIP-712 domains. The exchange and staking domain separators
 //! match the contracts' `DOMAIN_SEPARATOR()` as read on 2026-10-13.
 
 use df_hyperliquid_core::utils::Address;
@@ -25,6 +25,9 @@ pub const BATCH_EXECUTOR: Address = address("0x233ff29b239abc1d7748605da9b205c3e
 pub const PRICE_ORACLE: Address = address("0xa9b4c7b7ca5835652d81e25739c870d49f39cc2e");
 /// Registers, checks and revokes session keys. Revoking is a direct wallet call paid in HYPE gas.
 pub const SESSION_KEY_MANAGER: Address = address("0x8326eb8896e358717f10502ec73ce8d28e37b108");
+/// The approved builders and the builder fee rate. Not a proxy. A session key registration that
+/// names an address it does not approve is refused.
+pub const BUILDER_REGISTRY: Address = address("0xfdc6550436dd75ce8a0b145f935b7d3a64f53248");
 /// Derives each wallet's deposit address (`computeProxyAddress`) and deploys it.
 pub const DEPOSIT_PROXY_FACTORY: Address = address("0x1629b7d46bef6e13ff754174fc9f32dea309b38f");
 /// The PAPER token, 18 decimals. At launch it only moves into and out of staking.
@@ -37,9 +40,10 @@ pub const PAPER_TOKENOMICS: Address = address("0x75174549dbbd44497d31a47e2e2d740
 pub const USDC: Address = address("0xb88339cb7199b77e23db6e890353e22632ba630f");
 /// The contract the HyperEVM deposit route moves USDC through to HyperCore. Not an ERC-20.
 pub const CORE_DEPOSIT_WALLET: Address = address("0x6b9e773128f453f5c2c60935ee2de2cbc5390a24");
-/// Owns the contracts. Every owner action waits seven days here.
+/// Owns the contracts. Every owner action, approving a builder too, waits 24 hours here.
 pub const TIMELOCK: Address = address("0xb915fa41e824d6aa31bb833ee81220c0f2c8ea0f");
-/// The 2-of-3 multisig that owns the timelock.
+/// The 2-of-3 multisig that owns the timelock. As the BuilderRegistry's guardian it can also
+/// remove a builder at once.
 pub const MULTISIG: Address = address("0x696292762fd5ac3677a45edbe54eaece4194d1f6");
 
 /// Base URL of the relayer and its indexer. A request with a foreign `Origin` header gets a

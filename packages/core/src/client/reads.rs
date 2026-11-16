@@ -6,7 +6,7 @@ use df_hyperliquid_core::client::evm::precompiles;
 use df_hyperliquid_core::utils::Address;
 
 use crate::client::{Call, Client, Error, chain};
-use crate::markets::{QueueRank, QueueSummary, Summary, Trade, TradingState, stats};
+use crate::markets::{Builder, Builders, QueueRank, QueueSummary, Summary, Trade, TradingState, stats};
 
 /// Hyperliquid's best bid and ask for a market and their mid, raw at the market's price scale.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -73,6 +73,34 @@ impl<H: Http + Clone> Client<H> {
     pub async fn pending_reward(&self, owner: Address) -> Result<u128, Error> {
         let read = chain::pending_reward(owner).map_err(|e| Error::Decode(e.to_string()))?;
         read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// What `builder` has earned and not claimed, in collateral units.
+    pub async fn builder_fees(&self, builder: Address) -> Result<u128, Error> {
+        let read = chain::builder_fees(builder).map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// Whether the BuilderRegistry approves `builder`, so a session key may name it.
+    pub async fn is_builder(&self, builder: Address) -> Result<bool, Error> {
+        let read = chain::is_builder(builder).map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// The builder fee on a close's PnL, an 18-decimal fraction.
+    pub async fn builder_fee_rate(&self) -> Result<u128, Error> {
+        let read = chain::builder_fee_rate().map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// Every builder's routing and earnings, with the registry and its fee rate.
+    pub async fn builders(&self) -> Result<Builders, Error> {
+        Ok(Builders::parse(&self.text(&Call::builders()).await?)?)
+    }
+
+    /// One builder's standing: approved or not, unclaimed fees and what it routed.
+    pub async fn builder(&self, builder: Address) -> Result<Builder, Error> {
+        Ok(Builder::parse(&self.text(&Call::builder(builder)).await?)?)
     }
 
     /// The Exchange contract's current win fee, an 18-decimal fraction.

@@ -9,8 +9,8 @@ use df_papertrade_core::account::session_key::{self, Status};
 use df_papertrade_core::account::{Account, AccountError, Applied, OperationKind, Outcome};
 use df_papertrade_core::client::Call;
 use df_papertrade_core::live::{self, Events, HEARTBEAT, LIVENESS, WALLET};
-use df_papertrade_core::trade::math::WIN_FEE_RATE;
-use df_papertrade_core::trade::{bust_price, value};
+
+use df_papertrade_core::trade::{Rates, bust_price, value};
 use df_papertrade_core::utils::units::usd;
 
 use crate::support::venue::Venue;
@@ -186,12 +186,14 @@ async fn an_app_values_each_streamed_position_at_the_mark() {
         let instrument = state.instrument(position.instrument_id).unwrap();
         let bust = bust_price(position.entry_price, position.leverage, position.is_long, instrument.bust_buffer);
         assert_eq!(bust, Some(position.bust_price), "{}: the venue's bust price is ours", position.position_id);
-        let at = |mark| value(position, instrument, mark, WIN_FEE_RATE).unwrap();
+        let at = |mark| value(position, instrument, mark, Rates::default()).unwrap();
         let (flat, busted) = (at(position.entry_price), at(position.bust_price));
         assert_eq!((flat.raw_pnl, flat.payout_pnl, flat.risk_bp, flat.liquidated), (0, 0, Some(0), false));
         assert_eq!((busted.risk_bp, busted.liquidated), (Some(10_000), true));
-        let lost = busted.payout_pnl.unsigned_abs();
-        assert!(busted.payout_pnl < 0 && lost < position.margin, "busted a buffer before the margin is gone: {lost}");
+        // the move at bust is a buffer short of the margin, and the close settles as a liquidation
+        let moved = busted.raw_pnl.unsigned_abs();
+        assert!(busted.raw_pnl < 0 && moved < position.margin, "bust a buffer before the margin is gone: {moved}");
+        assert_eq!(busted.payout_pnl.unsigned_abs(), position.margin, "the whole margin");
         let gain = if position.is_long { position.entry_price * 101 / 100 } else { position.entry_price * 99 / 100 };
         let won = at(gain);
         assert!(0 < won.payout_pnl && won.payout_pnl < won.adjusted_pnl && won.adjusted_pnl < won.raw_pnl, "{won:?}");

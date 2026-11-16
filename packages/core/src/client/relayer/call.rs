@@ -79,6 +79,18 @@ impl Call {
         Call::get("/query/health")
     }
 
+    /// Every builder's routing and earnings: `GET /query/builders/leaderboard`.
+    #[must_use]
+    pub fn builders() -> Call {
+        Call::get("/query/builders/leaderboard")
+    }
+
+    /// One builder's standing: `GET /query/builders/<address>/stats`.
+    #[must_use]
+    pub fn builder(builder: Address) -> Call {
+        Call::get(format!("/query/builders/{}/stats", builder.to_hex()))
+    }
+
     /// The full request against `base`, such as [`ORIGIN`](crate::client::deployment::ORIGIN)
     /// or `/api`.
     #[must_use]

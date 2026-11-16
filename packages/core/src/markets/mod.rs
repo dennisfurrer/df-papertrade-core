@@ -8,5 +8,5 @@
 pub mod stats;
 pub mod trading;
 
-pub use stats::{QueueRank, QueueSummary, Summary, Trade};
+pub use stats::{Builder, BuilderRow, Builders, QueueRank, QueueSummary, Summary, Trade};
 pub use trading::{Instrument, Intake, TradingState};

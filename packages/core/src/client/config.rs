@@ -2,6 +2,7 @@
 //! endpoints, and the clock and randomness the caller supplies.
 
 use df_hyperliquid_core::client::Network;
+use df_hyperliquid_core::utils::Address;
 
 /// The venue endpoints, plus the clock and randomness the client uses.
 #[derive(Clone, Debug)]
@@ -16,6 +17,9 @@ pub struct Config {
     pub now_ms: fn() -> u64,
     /// Fills the buffer from a CSPRNG, for session keys and first nonces.
     pub random: fn(&mut [u8]) -> Result<(), String>,
+    /// The builder code session keys name: the frontend's address that earns the builder fee on
+    /// their closes. Zero for none. Named only while the BuilderRegistry approves it.
+    pub builder: Address,
 }
 
 impl Config {
@@ -28,7 +32,15 @@ impl Config {
             exchange: format!("{}/exchange", Network::Mainnet.api_url()),
             now_ms,
             random,
+            builder: Address::ZERO,
         }
+    }
+
+    /// Names `builder` as the builder code in every session key registration, while approved.
+    #[must_use]
+    pub const fn builder(mut self, builder: Address) -> Config {
+        self.builder = builder;
+        self
     }
 
     /// Reaches the relayer through `relayer` (a proxy) instead.

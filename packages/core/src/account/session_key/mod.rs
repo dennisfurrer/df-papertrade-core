@@ -23,15 +23,16 @@ pub const fn expiry(now_ms: u64) -> u64 {
 }
 
 /// The registration the wallet signs for `key`, made at `now_ms` and held
-/// until `held_until_ms`.
+/// until `held_until_ms`, naming `builder` (zero for none).
 pub fn registration(
     user: Address,
     key: Address,
     held_until_ms: u64,
     nonce: u128,
     now_ms: u64,
+    builder: Address,
 ) -> Result<RegisterSessionKey, Refusal> {
-    RegisterSessionKey::new(user, key, held_until_ms / 1000, nonce, deadline(now_ms))
+    Ok(RegisterSessionKey::new(user, key, held_until_ms / 1000, nonce, deadline(now_ms))?.builder(builder))
 }
 
 #[cfg(test)]
