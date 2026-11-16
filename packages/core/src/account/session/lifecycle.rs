@@ -58,7 +58,7 @@ impl<H: Http + Clone> Client<H> {
     /// The builder code a registration names now: the configured one while the BuilderRegistry
     /// approves it, else none. A failed read names none, so registering never waits on it.
     pub async fn builder_code(&self) -> Address {
-        let builder = self.config().builder;
+        let builder = self.current_builder();
         if builder.is_zero() {
             return builder;
         }
