@@ -34,17 +34,15 @@ df-papertrade-core
 ```
 
 ```mermaid
-flowchart TB
+graph TB
     app["<b>your app</b><br/>Http, Store, Wallet"]
 
     subgraph sdk ["df-papertrade-core"]
-        direction TB
         domains["<b>markets, account</b><br/><b>trade, transfer</b><br/>reads and intents"]
         client["<b>client</b><br/>relayer, HyperEVM reads"]
     end
 
     subgraph hl ["df-hyperliquid-core"]
-        direction LR
         http["<b>client::http</b>"]
         evm["<b>client::evm</b>"]
         send["<b>transfer::send</b>"]
