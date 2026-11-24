@@ -2,7 +2,9 @@
 
 All notable changes to df-papertrade-core.
 
-## Unreleased
+## 0.0.14-beta
+
+- Depends on df-hyperliquid-core 0.2.2, whose public enums are `#[non_exhaustive]`. A signed intent carries a field type added to the SDK later as a wallet carries it (`Field::to_json`).
 
 Fields the relayer has added, read and used:
 

@@ -134,6 +134,8 @@ fn payload_value(value: &Field<'_>) -> Json {
         Field::Uint256(word) => Json::String(word_decimal(word)),
         Field::Uint256Array(words) => Json::Array(words.iter().map(|word| Json::String(word_decimal(word))).collect()),
         Field::Bytes(bytes) => Json::String(hex::encode_prefixed(bytes)),
+        // A field type added after this was written: as a wallet carries it.
+        other => other.to_json(),
     }
 }
 
