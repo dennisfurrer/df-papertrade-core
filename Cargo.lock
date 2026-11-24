@@ -156,9 +156,9 @@ dependencies = [
 
 [[package]]
 name = "df-hyperliquid-core"
-version = "0.0.10-beta"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67782f694eda6bb661ec7530232ec419a50281e3e4c2f34c809baec0e24abd0e"
+checksum = "6183cff86799be50aae8fba276791e33040c0a700cbf1d95c8fc882300d50260"
 dependencies = [
  "futures-util",
  "getrandom 0.2.17",
@@ -175,7 +175,7 @@ dependencies = [
 
 [[package]]
 name = "df-papertrade-core"
-version = "0.0.12-beta"
+version = "0.0.13-beta"
 dependencies = [
  "df-hyperliquid-core",
  "serde",
