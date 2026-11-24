@@ -1,11 +1,11 @@
-//! A patch frame against a named revision: changed state fields, the closes and intent outcomes
-//! it reports, and the positions and operations it removes and adds. Removing what is not held
+//! A patch frame against a named revision: changed state fields and open interest caps, the
+//! closes and intent outcomes it reports, and the positions and operations it removes and adds. Removing what is not held
 //! or adding what already is means the stream is out of sync.
 
 use df_hyperliquid_core::utils::Json;
 
 use super::closed::read_outcome;
-use super::{Account, AccountError, ClosedPosition, Lifetime, Operation, Position};
+use super::{Account, AccountError, ClosedPosition, Lifetime, OiCap, Operation, Position};
 use crate::utils::wire::{array_of, field, hash_of, u64_of, u128_of};
 
 impl Account {
@@ -25,6 +25,9 @@ impl Account {
         }
         if let Some(lifetime) = json.get("lifetime") {
             next.lifetime = Lifetime::read(lifetime)?;
+        }
+        if let Some(caps) = json.get("oiCaps") {
+            next.oi_caps = OiCap::read_all(caps)?;
         }
         next.closed = match json.get("closedPositions") {
             Some(rows) => {

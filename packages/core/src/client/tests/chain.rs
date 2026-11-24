@@ -67,3 +67,68 @@ fn each_answer_decodes_to_its_value_or_says_why_not() {
     }
     assert!(matches!(win_fee_rate().unwrap().decode(&[0; 31]), Err(ReadError::Abi(_))));
 }
+
+/// The reads added for the rates of a close, calldata from `cast calldata`, answers from the
+/// mainnet RPC on 2026-11-24 (`fixtures/hyperevm/session_key.json`, `builder_fee_rate_of.json`,
+/// `off_hours.json`).
+#[test]
+fn the_reads_for_a_close_s_rates_go_to_their_contracts() {
+    let wallet: Address = WALLET.parse().unwrap();
+    let key: Address = "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23".parse().unwrap();
+    for ((to, data), contract, calldata, function) in [
+        (
+            parts(&session_key(wallet, key).unwrap()),
+            SESSION_KEY_MANAGER,
+            "0x96ade1f90000000000000000000000009587c978341b4de61fa14e4705f65fbaaec727410000000000000000000000002c7536e3605d9c16a7a3d7b1898e529396a65c23",
+            "sessionKeys",
+        ),
+        (
+            parts(&builder_fee_rate_of(wallet).unwrap()),
+            BUILDER_REGISTRY,
+            "0xd779e2700000000000000000000000009587c978341b4de61fa14e4705f65fbaaec72741",
+            "feeRateOf",
+        ),
+        (parts(&off_hours().unwrap()), EXCHANGE, "0xf009ac03", "offHoursPayout"),
+    ] {
+        assert_eq!((to, hex::encode_prefixed(&data)), (contract, calldata.to_owned()), "{function}");
+    }
+}
+
+fn recorded(name: &str) -> Vec<u8> {
+    let text = match name {
+        "session_key" => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/hyperevm/session_key.json")),
+        "builder_fee_rate_of" => {
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/hyperevm/builder_fee_rate_of.json"))
+        }
+        _ => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/hyperevm/off_hours.json")),
+    };
+    let json: serde_json::Value = serde_json::from_str(text).unwrap();
+    hex::decode(json["result"].as_str().unwrap()).unwrap()
+}
+
+#[test]
+fn a_session_key_s_expiry_and_builder_decode() {
+    let any: Address = WALLET.parse().unwrap();
+    let read = session_key(any, any).unwrap();
+    // a key of the recorded busy wallet: registered until 2026-12-02 and naming no builder
+    assert_eq!(read.decode(&recorded("session_key")), Ok(RegisteredKey { expiry: 1_796_290_091, builder: None }));
+    let builder = "6169d2c383451347b98faadec6f635aa59d8e4c4";
+    let named = word(&format!("{:064x}{:0>64}", 1_796_290_091u64, builder));
+    assert_eq!(
+        read.decode(&named),
+        Ok(RegisteredKey { expiry: 1_796_290_091, builder: Some(format!("0x{builder}").parse().unwrap()) })
+    );
+    assert_eq!(read.decode(&[0; 64]), Ok(RegisteredKey { expiry: 0, builder: None }), "never registered");
+    assert!(matches!(read.decode(&[0; 32]), Err(ReadError::Abi(_))));
+}
+
+#[test]
+fn a_builder_s_fee_and_the_off_hours_flag_decode() {
+    let any: Address = WALLET.parse().unwrap();
+    // trademarkets, approved on 2026-11-24
+    let rate = builder_fee_rate_of(any).unwrap();
+    assert_eq!(rate.decode(&recorded("builder_fee_rate_of")), Ok(crate::trade::math::BUILDER_FEE_RATE));
+    assert_eq!(rate.decode(&[0; 32]), Ok(0), "not approved");
+    assert_eq!(off_hours().unwrap().decode(&recorded("off_hours")), Ok(false));
+    assert_eq!(off_hours().unwrap().decode(&word(&format!("{:064x}", 1))), Ok(true));
+}

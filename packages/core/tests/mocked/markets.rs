@@ -39,10 +39,10 @@ async fn the_trading_state_and_the_protocol_summary_are_read_from_the_relayer() 
     }
     assert!(!state.trading_paused && state.accepts("openPosition"));
     assert_eq!(units::usd(state.minimum_margin), Some(Dec::from_int(10)));
-    assert_eq!((summary.block, summary.genesis_ms, summary.open_positions), (48_399_240, GENESIS_MS, 1_128));
-    assert_eq!(units::usd(summary.lp), Some(dec("4499154.030980584574848767")));
-    assert_eq!(summary.paper.tracked_lp, 4_499_154_030_980_584_574_848_767, "the curve tracks the LP's cash");
-    assert!(summary.paper.mint_rate() < summary.paper.rate, "past the cliff the rate has decayed");
+    assert_eq!((summary.block, summary.genesis_ms, summary.open_positions), (52_129_296, GENESIS_MS, 667));
+    assert_eq!(units::usd(summary.lp), Some(dec("4826009.593836340051193668")));
+    assert_eq!(summary.paper.tracked_lp, 4_826_009_593_836_340_051_193_668, "the curve tracks the LP's cash");
+    assert_eq!(units::to_dec(summary.paper.mint_rate(), 18), Some(dec("10.474659164463158")), "PAPER a dollar of loss");
 }
 
 #[tokio::test]

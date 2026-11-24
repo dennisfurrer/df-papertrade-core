@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     println!("     deposit address of {wallet}: {}", client.deposit_address(wallet).await?);
 
     let margin = units::collateral("10".parse()?).ok_or("bad margin")?;
-    math::check_open(&state, btc, true, margin, 100, Some(quote.mid), margin, None)?;
+    math::check_open(&state, btc, true, margin, 100, Some(quote.mid), margin, None, None)?;
     let entry_bust = math::bust_price(quote.mid, 100, true, btc.bust_buffer).ok_or("no bust price")?;
     let open = OpenPosition::new(wallet, btc.id, true, margin, 100, false, 256, deadline(clock()))?;
     let intent = Intent::OpenPosition(open);

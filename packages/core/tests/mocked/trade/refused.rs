@@ -5,7 +5,7 @@
 use df_hyperliquid_core::utils::hex;
 use df_papertrade_core::Error;
 use df_papertrade_core::account::session_key::RENEW_BEFORE_MS;
-use df_papertrade_core::account::{KeyState, SessionRecord};
+use df_papertrade_core::account::{Account, KeyState, OiCap, Operation, OperationKind, SessionRecord};
 use df_papertrade_core::client::{Accepted, RelayerError};
 use df_papertrade_core::trade::{Intent, Open, OpenPosition, OpenRefusal, deadline, intent_id};
 use df_papertrade_core::utils::Lane;
@@ -81,6 +81,36 @@ async fn an_open_the_venue_would_refuse_is_never_signed() {
     }
     assert!(venue.posted("/intents").is_empty());
     assert!(venue.relayed().iter().all(|sent| sent == "GET /state/trading"), "each read a fresh state, and only that");
+}
+
+/// The account's own cap of $1,000 of notional, and the venue's $10M cap less what the account
+/// already holds on BTC, each refuse a $10 open at 1000x ($10,000) before a nonce is taken.
+#[tokio::test]
+async fn an_open_past_the_account_s_cap_is_never_signed() {
+    let venue = Venue::new().get("/state/trading", "trading_mainnet.json");
+    let client = client(&venue);
+    let own = OiCap { instrument_id: None, cap: Some(1_000 * WAD) };
+    let capped = Account { oi_caps: vec![own], ..account(100_000, 0) };
+    let mut full = account(100_000, 0);
+    full.operations.push(Operation {
+        intent_id: [7; 32],
+        kind: OperationKind::OpenPosition {
+            instrument_id: 0,
+            is_long: false,
+            use_debt: false,
+            margin: 9_995 * WAD,
+            leverage: 1000,
+        },
+        accepted_at_ms: NOW,
+        deadline: NOW / 1000 + 90,
+    });
+    for (name, holds) in [("its own cap", capped), ("the venue's cap, with a queued open", full)] {
+        let store = ready(77, 1).await;
+        let got = client.open(&store, owner(), &holds, long(10, 1000), Some(BTC_MARK)).await;
+        assert_eq!(got.map(drop), Err(Error::Open(OpenRefusal::AccountOpenInterest)), "{name}");
+        assert_eq!(next(&store, Lane::Exchange).await, 77, "{name}: no nonce taken");
+    }
+    assert!(venue.posted("/intents").is_empty());
 }
 
 #[tokio::test]

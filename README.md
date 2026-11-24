@@ -65,6 +65,8 @@ flowchart TB
 
 A frontend the BuilderRegistry approves earns 0.5% of the PnL of winning closes made by session keys that name it. Set `Config::builder` to its address: each registration names it while the registry approves it, and none otherwise (the relayer refuses a registration that names an address it does not approve). `Client::builder_fees` and `Client::builder` read what it has earned; `chain::claim_builder_fees` is the transaction its own wallet sends to claim.
 
+A close pays the builder fee of the session key that signs it. `Client::close_builder_fee` reads it for the stored key, and `Rates::current` turns it and the trading state into the `Rates` that `math::value` takes.
+
 ## Examples
 
 | Example | What it does |

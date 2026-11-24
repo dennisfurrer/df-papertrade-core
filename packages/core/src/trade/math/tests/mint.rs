@@ -33,3 +33,25 @@ fn a_loss_mints_its_dollars_times_the_rate() {
         assert_eq!(paper_for_loss(loss, rate), expected, "{loss}");
     }
 }
+
+/// Contract set 2: `supply x (e^(c x g) - 1)`, checked against 80-digit decimal arithmetic with
+/// the 2026-11-24 supply and `rebateC36`, and at the edges.
+#[test]
+fn contract_set_2_mints_a_share_of_the_supply_per_dollar() {
+    let supply = 9_513_753_274_249_414_221_168_489_780;
+    let c36 = 1_101_001_766_258_568_981_998_368_146;
+    // (name, loss basis, PAPER minted)
+    let cases = [
+        ("a dollar", WAD, 10_474_659_164_463_158_000),
+        ("a million dollars", 1_000_000 * WAD, 10_480_427_584_635_654_704_288_724),
+        ("nothing", 0, 0),
+        ("too large to compute", u128::MAX, 0),
+    ];
+    for (name, basis, minted) in cases {
+        assert_eq!(rebate_mint(basis, supply, c36), minted, "{name}");
+    }
+    assert_eq!(rebate_rate(supply, c36), 10_474_659_164_463_158_000);
+    assert_eq!(rebate_mint(WAD, supply, 0), 0, "no constant, no mint");
+    // c x g = 1 exactly: the supply times e - 1 (1.718281828...)
+    assert_eq!(rebate_mint(WAD, WAD, WAD * WAD) / 1_000_000_000, 1_718_281_828);
+}

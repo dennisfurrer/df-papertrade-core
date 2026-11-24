@@ -64,3 +64,24 @@ fn each_intent_spends_its_contract_s_lane_and_a_cancel_none() {
         assert_eq!(Lane::of(&intent), lane, "{}", intent.primary_type());
     }
 }
+
+/// A nonce the relayer has seen at or past the lane's next moves it to the one after, within
+/// 65,536; one behind the lane, or further ahead, leaves it.
+#[test]
+fn a_lane_catches_up_with_the_nonces_seen_elsewhere() {
+    // (next, recent, next after)
+    for (next, recent, after) in [
+        (100, 100, Some(101)),
+        (100, 150, Some(151)),
+        (100, 100 + CATCH_UP_WINDOW, Some(101 + CATCH_UP_WINDOW)),
+        (100, 101 + CATCH_UP_WINDOW, None),
+        (100, 99, None),
+        (u128::MAX, u128::MAX, None),
+    ] {
+        assert_eq!(caught_up(next, recent), after, "{next} {recent}");
+    }
+    let mut nonces = Nonces::resume(182_791_800, 609_122_900);
+    assert!(nonces.catch_up(Lane::Exchange, 182_791_869));
+    assert!(!nonces.catch_up(Lane::Staking, 609_122_819));
+    assert_eq!((nonces.take(Lane::Exchange), nonces.peek(Lane::Staking)), (182_791_870, 609_122_900));
+}

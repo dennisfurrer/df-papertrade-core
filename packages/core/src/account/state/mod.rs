@@ -6,6 +6,8 @@
 //! - [`operation`]: an intent the relayer accepted and has not settled.
 //! - [`closed`]: positions a patch reports closed, and how intents ended.
 //! - [`funds`]: reserved and available funds, PAPER and lifetime totals.
+//! - [`limits`]: the account's own open interest caps, the notional it holds per market and the
+//!   latest nonces the relayer has seen.
 //!
 //! Folding a frame in is split by step: the entry point and the checks every frame passes, a
 //! snapshot, a patch, and the state fields both carry.
@@ -14,6 +16,7 @@ mod apply;
 pub mod closed;
 mod fields;
 pub mod funds;
+pub mod limits;
 pub mod operation;
 mod patch;
 pub mod position;
@@ -21,6 +24,7 @@ mod snapshot;
 
 pub use closed::{ClosedPosition, Outcome};
 pub use funds::{Funds, Lifetime, Paper};
+pub use limits::{OiCap, RecentNonces};
 pub use operation::{Operation, OperationKind};
 pub use position::Position;
 
@@ -59,6 +63,11 @@ pub struct Account {
     pub closed: Vec<ClosedPosition>,
     /// The intent outcomes the latest patch reported.
     pub outcomes: Vec<([u8; 32], Outcome)>,
+    /// `oiCaps`: caps the relayer set for this account alone, in place of the venue's account cap.
+    /// Empty for none, as for most accounts. A patch that carries them replaces them.
+    pub oi_caps: Vec<OiCap>,
+    /// `recentNonces`: the latest nonce the relayer has seen in each lane, as of the snapshot.
+    pub recent_nonces: RecentNonces,
 }
 
 /// Why a frame was not folded in.

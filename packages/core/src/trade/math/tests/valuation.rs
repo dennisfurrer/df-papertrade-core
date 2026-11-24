@@ -182,3 +182,38 @@ fn a_close_at_bust_loses_the_whole_margin() {
     let before = value(&long, &instrument, long.bust_price + 1, rates).unwrap();
     assert!(!before.liquidated && before.payout_pnl > -10_000_000_000_000_000_000);
 }
+
+/// The rates of a close from the trading state recorded on 2026-11-24: its win fee, the builder
+/// fee given, and the off-hours curve it had on; the standard curve once it is off; none for an
+/// Exchange this crate does not follow.
+#[test]
+fn the_rates_of_a_close_come_from_the_trading_state() {
+    use crate::markets::{ExchangeVersion, TradingState};
+    use crate::test_support::{TRADING, TRADING_NOW};
+
+    let mut state = TradingState::parse(TRADING_NOW).unwrap();
+    let rates = Rates::current(&state, BUILDER_FEE_RATE).unwrap();
+    assert_eq!(rates, Rates { win_fee: 20_000_000_000_000_000, builder_fee: BUILDER_FEE_RATE, curve: Curve::OffHours });
+    state.off_hours = false;
+    assert_eq!(Rates::current(&state, 0), Ok(Rates::default()));
+    state.win_fee_rate = None;
+    assert_eq!(Rates::current(&state, 0).unwrap().win_fee, WIN_FEE_RATE, "the constant when none is sent");
+    let older = TradingState::parse(TRADING).unwrap();
+    assert_eq!(Rates::current(&older, 0), Err(RatesError::Exchange(ExchangeVersion::Original)));
+
+    // a 3 bp win on BTC: held back further on the off-hours curve, then 2.5% in fees
+    let (instrument, long) = (btc(), position(true, 1_000_000, 1000));
+    let off_hours = value(
+        &long,
+        &instrument,
+        1_000_300,
+        Rates::current(&TradingState::parse(TRADING_NOW).unwrap(), BUILDER_FEE_RATE).unwrap(),
+    )
+    .unwrap();
+    let standard =
+        value(&long, &instrument, 1_000_300, Rates { builder_fee: BUILDER_FEE_RATE, ..Rates::default() }).unwrap();
+    assert!(off_hours.adjusted_pnl < standard.adjusted_pnl, "{off_hours:?} {standard:?}");
+    let gain = off_hours.adjusted_pnl.unsigned_abs();
+    assert_eq!(off_hours.builder_fee, gain * 5 / 1000);
+    assert_eq!(off_hours.payout_pnl.unsigned_abs(), gain - gain * 2 / 100 - gain * 5 / 1000);
+}

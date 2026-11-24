@@ -4,6 +4,7 @@
 use df_hyperliquid_core::client::Http;
 use df_hyperliquid_core::utils::Address;
 
+use crate::account::RecentNonces;
 use crate::account::store::{Slot, Store};
 use crate::account::wallet::{Purpose, SignRequest, Wallet};
 use crate::client::{Accepted, Client, Error};
@@ -21,6 +22,34 @@ impl<H: Http + Clone> Client<H> {
         };
         store.put(owner, Slot::Nonce(lane), next.saturating_add(1).to_be_bytes().to_vec(), None).await?;
         Ok(next)
+    }
+
+    /// Moves `owner`'s stored lanes past the latest nonces the relayer has seen the wallet use
+    /// (the account's [`recent_nonces`](crate::account::Account::recent_nonces)), so a nonce
+    /// another device or tab spent is not handed out again. Only a lane with a stored next nonce
+    /// moves, and only within [`nonce::CATCH_UP_WINDOW`] of it ([`nonce::caught_up`]). Call it with
+    /// each snapshot. Returns the lanes it moved.
+    pub async fn catch_up_nonces(
+        &self,
+        store: &impl Store,
+        owner: Address,
+        recent: &RecentNonces,
+    ) -> Result<Vec<Lane>, Error> {
+        let mut moved = Vec::new();
+        for lane in [Lane::Exchange, Lane::Staking] {
+            let Some(seen) = recent.get(lane) else { continue };
+            let held = store.get(owner, Slot::Nonce(lane)).await?;
+            let Some(next) =
+                held.as_deref().and_then(|bytes| <[u8; 16]>::try_from(bytes).ok()).map(u128::from_be_bytes)
+            else {
+                continue;
+            };
+            if let Some(after) = nonce::caught_up(next, seen) {
+                store.put(owner, Slot::Nonce(lane), after.to_be_bytes().to_vec(), None).await?;
+                moved.push(lane);
+            }
+        }
+        Ok(moved)
     }
 
     /// Has `wallet` sign `intent` and checks the signature recovers to `owner`.

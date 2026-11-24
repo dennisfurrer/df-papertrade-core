@@ -98,6 +98,18 @@ impl<H: Http + Clone> Client<H> {
         Ok(KeyState::Ready)
     }
 
+    /// The builder fee a close signed now by `owner`'s stored session key pays, an 18-decimal
+    /// fraction, for [`Rates::current`](crate::trade::math::Rates::current): 0 with no stored
+    /// key, else [`Client::key_builder_fee`] of its address (read on chain, so it holds the
+    /// builder the registration named whichever client registered it). Read it again after a
+    /// new key is registered.
+    pub async fn close_builder_fee(&self, store: &impl Store, owner: Address) -> Result<u128, Error> {
+        match self.session(store, owner).await? {
+            Some(record) => self.key_builder_fee(owner, record.address()?).await,
+            None => Ok(0),
+        }
+    }
+
     /// `owner`'s session key as a signer, or [`Error::NeedsKey`] with the step to take first.
     pub async fn session_key(
         &self,

@@ -95,7 +95,7 @@ async fn a_2xx_whose_error_is_null_is_an_answer() {
     answer["error"] = Value::Null;
     let venue = Venue::new().get_text("/query/protocol/summary", &answer.to_string());
     let summary = client(&venue).summary().await.unwrap();
-    assert_eq!(summary.block, 48_399_240);
+    assert_eq!(summary.block, 52_129_296);
 }
 
 /// Through a [`Relayer`] of its own at the venue's origin, with no client.

@@ -3,7 +3,8 @@
 //! first events through the crate's parser. The liveness event must name the heartbeat interval,
 //! the first `wallet` frame must fold as a snapshot and any patch within the wait on top of it, and
 //! each event's data must have the shape of the recorded streams' (`live_stream.txt`,
-//! `live_queued_close.txt`), so a field the relayer has added shows up here first.
+//! `live_queued_close.txt`, `live_recent_nonces.txt`), so a field the relayer has added shows up
+//! here first.
 //!
 //! The client's wire reads whole answers and a stream never ends, so the stream is read through
 //! `curl`, a plain `GET`, and dropped at its first heartbeat after a snapshot.
@@ -71,7 +72,8 @@ fn first_events(url: &str) -> (Vec<Event>, String) {
 
 /// The data of every `name` event in the recorded streams.
 fn recorded(name: &str) -> Vec<Value> {
-    let events = ["live_stream.txt", "live_queued_close.txt"].map(|capture| Events::new().push(&fixture(capture)));
+    let captures = ["live_stream.txt", "live_queued_close.txt", "live_recent_nonces.txt"];
+    let events = captures.map(|capture| Events::new().push(&fixture(capture)));
     let data = events.into_iter().flatten().filter(|event| event.name == name);
     data.map(|event| serde_json::from_str(&event.data).unwrap()).collect()
 }

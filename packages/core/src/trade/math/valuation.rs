@@ -3,16 +3,21 @@
 //! it has run toward bust.
 //!
 //! Contract set 2 (2026-10-21) holds a win on a small move back a little further, inside a band
-//! of moves that depends on the payout curve in force ([`Curve`]): a keeper switches between the
-//! standard and the off-hours curve, and the relayer does not say which is in force. The holdback
-//! follows the docs' formula (`docs.papertrade.xyz/how/asymmetric-impact`) in 18-decimal fixed
-//! point. A close at or past the bust price settles as a liquidation: the whole margin, no fees.
+//! of moves that depends on the payout curve in force ([`Curve`]): the off-hours keeper switches
+//! the whole Exchange between the standard and the off-hours curve (`offHoursPayout()`), and the
+//! relayer's trading state says which is in force
+//! ([`TradingState::off_hours`](crate::markets::TradingState::off_hours)). The holdback follows the
+//! docs' formula (`docs.papertrade.xyz/how/asymmetric-impact`) in 18-decimal fixed point. A close
+//! at or past the bust price settles as a liquidation: the whole margin, no fees.
+//!
+//! [`Rates::current`] gives the rates a close signed now settles at, from the trading state and
+//! the builder fee of the session key that signs it.
 
 use df_hyperliquid_core::client::evm::U256;
 
 use super::mul_div;
 use crate::account::state::Position;
-use crate::markets::trading::Instrument;
+use crate::markets::trading::{ExchangeVersion, Instrument, TradingState};
 use crate::utils::units::WAD;
 
 /// Win fee on a winning close's gain, 18-decimal fraction (2%), as `winFeeRate()` and the
@@ -86,6 +91,34 @@ impl Default for Rates {
     /// The win fee at contract set 2's start, no builder, the standard curve.
     fn default() -> Self {
         Rates { win_fee: WIN_FEE_RATE, builder_fee: 0, curve: Curve::Standard }
+    }
+}
+
+/// Why the rates of a close cannot be told from the trading state.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum RatesError {
+    /// The relayer settles against an Exchange whose payout this crate does not follow (only
+    /// contract set 2, [`ExchangeVersion::Next`], is followed).
+    #[error("the relayer settles against an Exchange this crate does not follow: {0:?}")]
+    Exchange(ExchangeVersion),
+}
+
+impl Rates {
+    /// The rates a winning close signed now settles at: the win fee the relayer sends
+    /// ([`TradingState::win_fee_rate`], [`WIN_FEE_RATE`] when it sends none), `builder_fee` and
+    /// the curve in force ([`TradingState::curve`]).
+    ///
+    /// `builder_fee` is the fee of the session key that signs the close, an 18-decimal fraction:
+    /// the BuilderRegistry's `feeRateOf` the builder the key names, 0 when it names none or one
+    /// no longer approved. [`Client::close_builder_fee`](crate::client::Client::close_builder_fee)
+    /// reads it for the stored key. A close is charged by the key that signs it, not the one that
+    /// opened the position, so one figure serves every position of the account.
+    ///
+    /// The curve is the one in force at the trading state's indexed block; the keeper may switch
+    /// it before the close executes, and every close in one batch settles on one curve.
+    pub fn current(state: &TradingState, builder_fee: u128) -> Result<Rates, RatesError> {
+        let curve = state.curve().ok_or_else(|| RatesError::Exchange(state.exchange.clone()))?;
+        Ok(Rates { win_fee: state.win_fee_rate.unwrap_or(WIN_FEE_RATE), builder_fee, curve })
     }
 }
 

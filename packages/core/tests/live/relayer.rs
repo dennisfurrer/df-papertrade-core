@@ -6,12 +6,15 @@
 use df_papertrade_core::client::Call;
 use df_papertrade_core::client::deployment::{GENESIS_MS, LISTINGS};
 use df_papertrade_core::trade::math::WIN_FEE_RATE;
+use df_papertrade_core::trade::{Curve, Rates};
 use df_papertrade_core::utils::units;
 
 use crate::tap::{reader, same_shape};
 
-/// The trading state as the relayer answers it since `intakeControls`, the leverage bounds and
-/// `winFeeRateRaw` were added; `trading.json` is the answer from before.
+/// The trading state as the relayer answers it since `intakeControls`, the leverage bounds,
+/// `winFeeRateRaw`, `accountOiCapRaw`, `exchange` and `offHours` were added; `trading.json` is the
+/// answer from before. `offHours` is sent only while the off-hours curve is on, so the recording
+/// is one made while it was.
 #[tokio::test]
 #[ignore = "mainnet"]
 async fn the_trading_state_lists_its_markets() {
@@ -27,6 +30,9 @@ async fn the_trading_state_lists_its_markets() {
         assert!(1 <= lowest && lowest <= highest, "{}: {lowest} to {highest}", listing.symbol);
     }
     assert_eq!(state.win_fee_rate, Some(WIN_FEE_RATE), "the relayer's win fee is the one the math assumes");
+    let rates = Rates::current(&state, 0).expect("the relayer settles against the Exchange the math follows");
+    assert_eq!(rates.curve == Curve::OffHours, state.off_hours);
+    assert!(state.account_oi_cap.is_none_or(|cap| cap >= state.minimum_open_notional), "{state:?}");
     assert!(state.minimum_margin > 0 && state.minimum_open_notional >= state.minimum_margin);
 }
 
@@ -39,6 +45,7 @@ async fn the_protocol_summary_reads() {
     assert_eq!(summary.genesis_ms, GENESIS_MS);
     assert!(summary.at_ms > GENESIS_MS && summary.tvl >= summary.lp, "{summary:?}");
     assert!(summary.paper.staked <= summary.paper.supply, "{:?}", summary.paper);
+    assert!(summary.paper.rebate_c36.is_some() && summary.paper.mint_rate() > 0, "{:?}", summary.paper);
 }
 
 #[tokio::test]

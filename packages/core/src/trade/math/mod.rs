@@ -1,5 +1,5 @@
 //! Papertrade's integer math, following the Exchange's `QueueLib`: bust prices, PnL after
-//! the payout curve, impact curve, win fee and builder fee, open limits and the PAPER mint rate. Every division rounds
+//! the payout curve, impact curve, win fee and builder fee, open limits and the PAPER mint. Every division rounds
 //! toward zero, and wide products go through [`df_hyperliquid_core::client::evm::U256`].
 
 pub mod bust;
@@ -9,8 +9,10 @@ pub mod valuation;
 
 pub use bust::bust_price;
 pub use limits::{Limit, OpenLimits, OpenRefusal, check_open, debt_room, open_limits};
-pub use mint::{mint_rate, paper_for_loss};
-pub use valuation::{BUILDER_FEE_RATE, Curve, DEADBAND_DIVISOR, Rates, Valuation, ValuationError, WIN_FEE_RATE, value};
+pub use mint::{mint_rate, paper_for_loss, rebate_mint, rebate_rate};
+pub use valuation::{
+    BUILDER_FEE_RATE, Curve, DEADBAND_DIVISOR, Rates, RatesError, Valuation, ValuationError, WIN_FEE_RATE, value,
+};
 
 use df_hyperliquid_core::client::evm::U256;
 

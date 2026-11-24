@@ -74,8 +74,38 @@ fn an_open_is_refused_by_the_first_check_it_fails() {
         ("with no mark, no room to check", &state, btc, 5_000, 1000, None, 100_000, None, Ok(())),
     ];
     for (name, state, instrument, margin, leverage, mark, available, room, expected) in cases {
+        let got = check_open(
+            state,
+            instrument,
+            true,
+            dollars(margin),
+            leverage,
+            mark,
+            dollars(available),
+            room.map(dollars),
+            None,
+        );
+        assert_eq!(got, expected, "{name}");
+    }
+}
+
+/// The account's own cap counts notional, so 10x leverage on $100 needs $1,000 of room. It is
+/// checked after funds and the queue and before the side's cap.
+#[test]
+fn an_open_past_the_account_s_room_is_refused() {
+    let state = TradingState::parse(TRADING).unwrap();
+    let btc = &state.instruments[0];
+    // (name, margin, leverage, account room, expected)
+    let cases = [
+        ("no cap", 100, 10, None, Ok(())),
+        ("just inside the room", 100, 10, Some(1_000), Ok(())),
+        ("a dollar past the room", 100, 10, Some(999), Err(OpenRefusal::AccountOpenInterest)),
+        ("no room left", 100, 10, Some(0), Err(OpenRefusal::AccountOpenInterest)),
+        ("funds come first", 200, 10, Some(0), Err(OpenRefusal::InsufficientFunds)),
+    ];
+    for (name, margin, leverage, room, expected) in cases {
         let got =
-            check_open(state, instrument, true, dollars(margin), leverage, mark, dollars(available), room.map(dollars));
+            check_open(&state, btc, true, dollars(margin), leverage, Some(MARK), dollars(150), None, room.map(dollars));
         assert_eq!(got, expected, "{name}");
     }
 }
@@ -100,9 +130,27 @@ fn a_new_position_may_commit_up_to_its_tightest_limit() {
         ("past the market's leverage", btc, 1001, Some(MARK), plenty, false, Limit::Leverage, 0, None),
     ];
     for (name, instrument, leverage, mark, available, queued, limit, maximum, headroom) in cases {
-        let got = open_limits(instrument, true, leverage, mark, available, queued);
+        let got = open_limits(instrument, true, leverage, mark, available, queued, None);
         assert_eq!(got, OpenLimits { maximum, limit, headroom }, "{name}");
     }
+}
+
+/// The account's room in notional, divided by the leverage, limits the margin when it is the
+/// tightest; the side's headroom is still reported.
+#[test]
+fn the_account_s_room_limits_the_margin_when_tightest() {
+    let state = TradingState::parse(TRADING).unwrap();
+    let btc = &state.instruments[0];
+    let plenty = dollars(1_000_000);
+    let got = open_limits(btc, true, 100, Some(MARK), plenty, false, Some(dollars(5_000)));
+    assert_eq!(
+        got,
+        OpenLimits { maximum: dollars(50), limit: Limit::AccountOpenInterest, headroom: Some(LONG_HEADROOM) }
+    );
+    let none_left = open_limits(btc, true, 100, Some(MARK), plenty, false, Some(0));
+    assert_eq!((none_left.maximum, none_left.limit), (0, Limit::AccountOpenInterest));
+    let wide = open_limits(btc, true, 1000, Some(MARK), plenty, false, Some(plenty * 1000));
+    assert_eq!(wide.limit, Limit::OpenInterest, "the side's cap is tighter");
 }
 
 #[test]

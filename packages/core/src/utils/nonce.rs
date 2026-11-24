@@ -23,6 +23,18 @@ impl Lane {
     }
 }
 
+/// How far ahead of a lane's next nonce a nonce the relayer reports may be and still move the
+/// lane on, as papertrade.xyz allows: further is taken for a wrong report and left alone.
+pub const CATCH_UP_WINDOW: u128 = 65_536;
+
+/// The lane's next nonce once `recent`, the latest nonce the relayer has seen the wallet use in
+/// it (the stream's `recentNonces`), is counted: `recent + 1` when `recent` is at or past `next`
+/// and at most [`CATCH_UP_WINDOW`] ahead, else `None` (nothing to move).
+#[must_use]
+pub fn caught_up(next: u128, recent: u128) -> Option<u128> {
+    (recent >= next && recent - next <= CATCH_UP_WINDOW).then(|| recent.checked_add(1)).flatten()
+}
+
 /// A lane's first nonce: three random bytes as a big-endian number (at least 1), times 256.
 #[must_use]
 pub fn first(random: [u8; 3]) -> u128 {
@@ -56,6 +68,22 @@ impl Nonces {
         match lane {
             Lane::Exchange => self.exchange,
             Lane::Staking => self.staking,
+        }
+    }
+
+    /// Moves `lane` past `recent`, the latest nonce the relayer has seen the wallet use there
+    /// from any device ([`caught_up`]). Whether it moved.
+    pub fn catch_up(&mut self, lane: Lane, recent: u128) -> bool {
+        let slot = match lane {
+            Lane::Exchange => &mut self.exchange,
+            Lane::Staking => &mut self.staking,
+        };
+        match caught_up(*slot, recent) {
+            Some(next) => {
+                *slot = next;
+                true
+            }
+            None => false,
         }
     }
 

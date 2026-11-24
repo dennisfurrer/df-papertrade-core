@@ -1,9 +1,10 @@
-//! A snapshot frame: the whole account at one revision, with its operations and its open
-//! positions newest first.
+//! A snapshot frame: the whole account at one revision, with its operations, its open positions
+//! newest first, its own open interest caps and the latest nonces the relayer has seen. A
+//! snapshot without `oiCaps` or `recentNonces`, as the relayer sent before 2026-11, reads as none.
 
 use df_hyperliquid_core::utils::Json;
 
-use super::{Account, AccountError, Funds, Lifetime, Operation, Paper, Position};
+use super::{Account, AccountError, Funds, Lifetime, OiCap, Operation, Paper, Position, RecentNonces};
 use crate::utils::wire::{address_of, array_of, field, u64_of};
 
 impl Account {
@@ -35,6 +36,8 @@ impl Account {
                 .collect::<Result<_, _>>()?,
             closed: Vec::new(),
             outcomes: Vec::new(),
+            oi_caps: json.get("oiCaps").map(OiCap::read_all).transpose()?.unwrap_or_default(),
+            recent_nonces: json.get("recentNonces").map(RecentNonces::read).transpose()?.unwrap_or_default(),
         };
         account.fields(json, false)?;
         let descending = account.positions.windows(2).all(|pair| pair[0].position_id > pair[1].position_id);

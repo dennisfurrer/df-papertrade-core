@@ -93,6 +93,37 @@ impl<H: Http + Clone> Client<H> {
         read.run(&self.rpc()).await.map_err(Error::Chain)
     }
 
+    /// The builder fee a close through `builder` pays now, an 18-decimal fraction: the registry's
+    /// rate while it approves `builder`, else 0.
+    pub async fn builder_fee_of(&self, builder: Address) -> Result<u128, Error> {
+        let read = chain::builder_fee_rate_of(builder).map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// `key` as the SessionKeyManager holds it for `owner`: its expiry and the builder it names.
+    pub async fn registered_key(&self, owner: Address, key: Address) -> Result<chain::RegisteredKey, Error> {
+        let read = chain::session_key(owner, key).map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
+    /// The builder fee a close signed by `key` for `owner` pays now, an 18-decimal fraction, for
+    /// [`Rates::current`](crate::trade::math::Rates::current): the fee rate of the builder the
+    /// key's registration names while the registry approves it, else 0. One read when the key
+    /// names no builder, two otherwise.
+    pub async fn key_builder_fee(&self, owner: Address, key: Address) -> Result<u128, Error> {
+        match self.registered_key(owner, key).await?.builder {
+            Some(builder) => self.builder_fee_of(builder).await,
+            None => Ok(0),
+        }
+    }
+
+    /// Whether the off-hours keeper has switched winning closes to the off-hours payout curve, as
+    /// the Exchange holds it now.
+    pub async fn off_hours(&self) -> Result<bool, Error> {
+        let read = chain::off_hours().map_err(|e| Error::Decode(e.to_string()))?;
+        read.run(&self.rpc()).await.map_err(Error::Chain)
+    }
+
     /// Every builder's routing and earnings, with the registry and its fee rate.
     pub async fn builders(&self) -> Result<Builders, Error> {
         Ok(Builders::parse(&self.text(&Call::builders()).await?)?)

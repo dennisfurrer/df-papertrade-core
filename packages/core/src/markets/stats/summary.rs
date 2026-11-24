@@ -1,5 +1,5 @@
 //! `GET /query/protocol/summary`: what the Exchange holds, its activity and fees, and PAPER's
-//! supply, staking and mint curve.
+//! supply, staking and mint curve (contract set 1's figures, and contract set 2's constant).
 
 use df_hyperliquid_core::utils::Json;
 
@@ -52,13 +52,36 @@ pub struct PaperFigures {
     pub rate: u128,
     /// The tail's decay scale.
     pub decay: u128,
+    /// `rebateC36`: contract set 2's mint constant `c`, PAPER minted as a share of the supply per
+    /// dollar of loss basis, times `10^36` (`floor(c x 10^36)`, as PaperTokenomics'
+    /// `rebateC36()` returns it). About `1.101 x 10^27` on 2026-11-24, `c` about `1.101 x 10^-9`
+    /// a dollar. `None` when not sent, as before contract set 2.
+    pub rebate_c36: Option<u128>,
 }
 
 impl PaperFigures {
-    /// PAPER per dollar of loss now, 18 decimals.
+    /// PAPER per dollar of loss now, 18 decimals: contract set 2's rate
+    /// ([`rebate_rate`](crate::trade::math::rebate_rate), without the insolvency bonus) when
+    /// [`PaperFigures::rebate_c36`] is sent, else contract set 1's curve.
     #[must_use]
     pub fn mint_rate(&self) -> u128 {
-        crate::trade::math::mint_rate(self.tracked_lp, self.cliff, self.rate, self.decay, self.tail_progress)
+        match self.rebate_c36 {
+            Some(c36) => crate::trade::math::rebate_rate(self.supply, c36),
+            None => {
+                crate::trade::math::mint_rate(self.tracked_lp, self.cliff, self.rate, self.decay, self.tail_progress)
+            }
+        }
+    }
+
+    /// PAPER (18 decimals) a loss basis of `basis` collateral units mints now, contract set 2's
+    /// rule ([`rebate_mint`](crate::trade::math::rebate_mint)) when [`PaperFigures::rebate_c36`]
+    /// is sent, else contract set 1's rate times the loss.
+    #[must_use]
+    pub fn mint_for_loss(&self, basis: u128) -> u128 {
+        match self.rebate_c36 {
+            Some(c36) => crate::trade::math::rebate_mint(basis, self.supply, c36),
+            None => crate::trade::math::paper_for_loss(basis, self.mint_rate()),
+        }
     }
 }
 
@@ -98,6 +121,11 @@ impl Summary {
                 excess: amount(paper, "excess")?,
                 rate: amount(paper, "rate")?,
                 decay: amount(paper, "decay")?,
+                rebate_c36: paper
+                    .get("rebateC36")
+                    .filter(|value| **value != Json::Null)
+                    .map(|value| u128_of(value, "rebateC36"))
+                    .transpose()?,
             },
         })
     }

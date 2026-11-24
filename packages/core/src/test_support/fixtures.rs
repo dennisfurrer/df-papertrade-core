@@ -1,5 +1,6 @@
 //! Recorded answers and keys. The account streams are captures of a busy wallet over five
-//! minutes and of a wallet with a queued close. The keys are the viem vectors' wallet and
+//! minutes, of a wallet with a queued close and of a busy wallet's snapshot with its open
+//! interest caps and recent nonces. The keys are the viem vectors' wallet and
 //! session key.
 
 use crate::markets::trading::{Instrument, TradingState};
@@ -8,6 +9,11 @@ use crate::markets::trading::{Instrument, TradingState};
 pub(crate) const TRADING: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/trading.json"));
 /// A busy wallet's account stream over five minutes.
 pub(crate) const STREAM: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/live_stream.txt"));
+/// A busy wallet's snapshot on 2026-11-24, with `oiCaps` and `recentNonces`.
+pub(crate) const RECENT: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/live_recent_nonces.txt"));
+/// `GET /state/trading` on 2026-11-24: contract set 2, the off-hours curve on, a $10M account cap.
+pub(crate) const TRADING_NOW: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/trading_mainnet.json"));
 /// A snapshot with open positions, then a close queued behind 36 other intents.
 pub(crate) const QUEUED: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/live_queued_close.txt"));
 

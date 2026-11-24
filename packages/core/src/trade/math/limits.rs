@@ -1,5 +1,6 @@
 //! What a new position may commit, and the checks an open must pass before it is signed:
-//! pause switches, size limits, funds, queue liquidity and the side's open interest cap.
+//! pause switches, size limits, funds, queue liquidity, the account's open interest cap and the
+//! side's open interest cap.
 
 use super::mul_div;
 use crate::markets::trading::{Instrument, NO_CAP, TradingState};
@@ -17,6 +18,9 @@ pub enum Limit {
     MarketMaxSize,
     /// The side's open-interest cap.
     OpenInterest,
+    /// The account's own open-interest cap on the market
+    /// ([`Account::oi_room`](crate::account::Account::oi_room)).
+    AccountOpenInterest,
 }
 
 /// The most margin a new position may commit, and what limits it.
@@ -29,7 +33,9 @@ pub struct OpenLimits {
 }
 
 /// Open limits for `leverage` at a raw `mark`. `available` is the usable balance, already
-/// capped to queue liquidity when `queue_limited` is set.
+/// capped to queue liquidity when `queue_limited` is set. `account_room` is the notional the
+/// account may still open on the market ([`Account::oi_room`](crate::account::Account::oi_room)),
+/// `None` for no cap or no account.
 #[must_use]
 pub fn open_limits(
     instrument: &Instrument,
@@ -38,6 +44,7 @@ pub fn open_limits(
     mark: Option<u128>,
     available: u128,
     queue_limited: bool,
+    account_room: Option<u128>,
 ) -> OpenLimits {
     let mut limits = OpenLimits {
         maximum: available,
@@ -56,6 +63,9 @@ pub fn open_limits(
     }
     if instrument.max_position_notional > 0 {
         tighten(instrument.max_position_notional / u128::from(leverage), Limit::MarketMaxSize, &mut limits);
+    }
+    if let Some(room) = account_room {
+        tighten(room / u128::from(leverage), Limit::AccountOpenInterest, &mut limits);
     }
     let (own, cap) =
         if is_long { (instrument.long_oi, instrument.long_cap) } else { (instrument.short_oi, instrument.short_cap) };
@@ -97,10 +107,14 @@ pub enum OpenRefusal {
     QueueLiquidity,
     #[error("the side's open interest cap leaves no room for this position")]
     OpenInterest,
+    #[error("the account's open interest cap on this market leaves no room for this position")]
+    AccountOpenInterest,
 }
 
-/// Checks before signing an open: pause switches, size limits, funds, queue liquidity and
-/// the side's open interest cap at `mark`.
+/// Checks before signing an open: pause switches, size limits, funds, queue liquidity, the
+/// account's open interest cap (`account_room`, the notional it may still open on the market, as
+/// [`Account::oi_room`](crate::account::Account::oi_room) gives it; `None` for no cap or no
+/// account) and the side's open interest cap at `mark`.
 #[allow(clippy::too_many_arguments)]
 pub fn check_open(
     state: &TradingState,
@@ -111,6 +125,7 @@ pub fn check_open(
     mark: Option<u128>,
     available: u128,
     debt_room: Option<u128>,
+    account_room: Option<u128>,
 ) -> Result<(), OpenRefusal> {
     if state.trading_paused {
         return Err(OpenRefusal::TradingPaused);
@@ -144,7 +159,10 @@ pub fn check_open(
     if debt_room.is_some_and(|room| margin > room) {
         return Err(OpenRefusal::QueueLiquidity);
     }
-    let limits = open_limits(instrument, is_long, leverage, mark, u128::MAX, false);
+    if account_room.is_some_and(|room| notional > room) {
+        return Err(OpenRefusal::AccountOpenInterest);
+    }
+    let limits = open_limits(instrument, is_long, leverage, mark, u128::MAX, false, None);
     if limits.limit == Limit::OpenInterest && margin > limits.maximum {
         return Err(OpenRefusal::OpenInterest);
     }

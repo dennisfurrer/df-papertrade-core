@@ -25,8 +25,9 @@ pub struct Open {
 
 impl<H: Http + Clone> Client<H> {
     /// Opens a position for `owner`, signed by the session key, at the BBO mid of the relayer's
-    /// batch. It is first checked against a fresh trading state, `account` as last streamed, and
-    /// `mark` (the current mid, raw) for the side's open-interest cap.
+    /// batch. It is first checked against a fresh trading state, `account` as last streamed (its
+    /// funds and its open interest cap on the market), and `mark` (the current mid, raw) for the
+    /// side's open-interest cap.
     pub async fn open(
         &self,
         store: &impl Store,
@@ -45,7 +46,18 @@ impl<H: Http + Clone> Client<H> {
         } else {
             (account.funds.available_balance, None)
         };
-        math::check_open(&state, instrument, open.is_long, open.margin, open.leverage, mark, available, room)?;
+        let account_room = account.oi_room(&state, instrument.id);
+        math::check_open(
+            &state,
+            instrument,
+            open.is_long,
+            open.margin,
+            open.leverage,
+            mark,
+            available,
+            room,
+            account_room,
+        )?;
         let key = self.session_key(store, owner, Some(account)).await?;
         let nonce = self.take_nonce(store, owner, Lane::Exchange).await?;
         let intent = OpenPosition::new(

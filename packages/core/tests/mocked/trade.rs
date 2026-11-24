@@ -8,6 +8,7 @@
 mod cancel;
 mod close;
 mod open;
+mod rates;
 mod refused;
 mod staking;
 mod withdraw;

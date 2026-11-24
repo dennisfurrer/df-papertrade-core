@@ -13,5 +13,5 @@ pub use intent::{
     BadSignature, CancelIntent, Claim, Close, Intent, Key, OpenPosition, Refusal, RegisterSessionKey, Signed, Staking,
     WithdrawToCore, deadline, intent_id,
 };
-pub use math::{Curve, OpenLimits, OpenRefusal, Rates, Valuation, bust_price, value};
+pub use math::{Curve, OpenLimits, OpenRefusal, Rates, RatesError, Valuation, bust_price, value};
 pub use writes::Open;
